@@ -10,7 +10,7 @@ categories:
 - games
 comments: []
 ---
-If you've ever played around with old versions of Mac OS, you'll be familiar with the concept of "desk accessories." These were small programs that could run alongside the currently running main app (the original Mac OS could only run one program at a time). One of the desk accessories was an implementation of the classic "[15 puzzle](https://en.wikipedia.org/wiki/15_puzzle)", programmed by [Andy Hertzfeld](https://www.folklore.org/StoryView.py?project=Macintosh&story=Puzzle.txt). This type of puzzle was also been included as an [easter egg](https://finalfantasy.fandom.com/wiki/15_Puzzle) in the classic NES game, Final Fantasy.
+If you've ever played around with [old versions of Mac OS](https://infinitemac.org/), you'll be familiar with the concept of "desk accessories." These were small programs that could run alongside the currently running main app (the original Mac OS could only run one program at a time). One of the desk accessories was an implementation of the classic "[15 puzzle](https://en.wikipedia.org/wiki/15_puzzle)", programmed by [Andy Hertzfeld](https://www.folklore.org/StoryView.py?project=Macintosh&story=Puzzle.txt). Another example of this type of puzzle is an [easter egg](https://finalfantasy.fandom.com/wiki/15_Puzzle) in the classic NES game, Final Fantasy.
 
 This sort of game is a perfect candidate for a grid, and is an especially good one to start off with. The puzzle board can be represented as a 4x4 two-dimensional array, with each cell containing a value from 1 &mdash; 16 (16 being the "empty" space). The grid can be initialized randomly, then play occurs by clicking or tapping a tile that is next to the empty space. The tile then moves into the empty spot; continued interaction will (hopefully) order all the tiles.
 
@@ -121,8 +121,20 @@ let neighbors = [
 ];
 ```
 
-Remember that in our grid, the origin (0, 0) is the upper left corner, and the y-axis values increase as you go "down."
+Remember that in our grid, the origin (0, 0) is the upper left corner, and the y-axis values increase as you go "down." We can extract this array to be returned from a new method, appropriately named `getNeighbors`. One addition is a call to `filter`, which is passed the `withinBounds` method ([defined in the parent `Grid` class](https://github.com/endemic/gridjs/blob/main/grid.js#L78-L80)) as an argument. This ensures that returned neighboring cells are all within the bounds of the grid.
 
+```javascript
+getNeighbors({ x, y }) {
+  return [
+      { x: x, y: y - 1 }, // top
+      { x: x - 1, y: y }, // left
+      { x: x + 1, y: y }, // right
+      { x: x, y: y + 1 }, // bottom
+  ].filter(this.withinBounds);
+}
+```
+
+We can then update the `onClick` method to include the following logic, which checks the grid cells around where the user clicked, and if one is empty, swaps the two.
 
 ```javascript
 let nextState = this.currentState;
@@ -147,31 +159,7 @@ for (let i = 0; i < neighbors.length; i += 1) {
 }
 ```
 
-```javascript
-const withinBounds = (x, y) => {
-  return x >= 0 &&
-    x < this.columns &&
-    y >= 0 &&
-    y < this.rows;
-}
-```
-
-```javascript
-getNeighbors({ x, y }) {
-  // function to ensure that (x, y) coords are within our data structure
-  const withinBounds = ({ x, y }) => x >= 0 && x < this.columns && y >= 0 && y < this.rows;
-
-  return [
-      // previous row
-      { x: x, y: y - 1 },
-      // current row
-      { x: x - 1, y: y },
-      { x: x + 1, y: y },
-      // next row
-      { x: x, y: y + 1 },
-  ].filter(withinBounds);
-}
-```
+Save the `game.js` file and reload the page. You should now be able to click numbers next to the empty cell, and watch them move around. This is all the functionality that is required to successfully solve the puzzle! However, it would be nice to provide the player some sort of confirmation that they finished the game. To that end, we can write up a function that checks whether or not the contents of each grid cell is sorted. A quick way to do this is to make an array of strings &mdash; then compare the contents of each grid cell with the corresponding value of an incrementing index. For example, the cell at (0, 0) should be `one`, the cell at (1, 0) should be `two`, etc.
 
 ```javascript
 checkWin() {
@@ -201,4 +189,12 @@ checkWin() {
 }
 ```
 
-https://github.com/endemic/tile-puzzle/blob/main/scripts/game.js
+We can now use this method at the end of `onClick` to show an alert popup when the player solves the puzzle:
+
+```javascript
+if (this.checkWin()) {
+  alert('Congratulations!!!');
+}
+```
+
+We now have a more-or-less completed puzzle game! If you're having problems, or the game isn't working as it should, download an example of the completed project to see what you might have missed.
