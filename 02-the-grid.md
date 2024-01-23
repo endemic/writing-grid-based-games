@@ -11,18 +11,20 @@ categories:
 comments: []
 ---
 
-https://www.youtube.com/watch?v=4-J4duzP8Ng
+<iframe width="560" height="315" src="https://www.youtube.com/embed/4-J4duzP8Ng?si=3Qj2QWbBB7KfKCHB" title="YouTube video player" frameborder="0" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>
 
-Detail the class that all games in the book will be based on
+The goal for this series of tutorials is to require minimal setup in order to get something displayed in a browser. When creating my own games, I found that there were a few pieces of functionality that were helpful to extract into a shared source file. In this case, it's represented as a JavaScript class, imaginatively named `Grid`. Extending your own game class with `Grid` will provide a few bits of functionality:
+
+1. Finds an HTML element with the ID `#grid`, and fills it with the appropriate number of cells based on the row/column count you specify.
+2. Sets CSS styles so that the `#grid` element actually uses [CSS grid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout) for layout. This ensures that the aspect ratio of each cell is correct, so they each look like a square.
+3. Provides a `currentState` getter method which returns a 2D array of the state of the game. You can then make changes to this array (normally in response to player input) and use it as an argument for:
+4. An `updateState` method which takes a 2D array as an argument (nominally obtained by getting `currentState` earlier), calculates the difference between the old/new state, and changes the rendered HTML/CSS in order to show game activity.
+
+You totally don't have to understand the following code in order to use it. However, it has been annotated fairly heavily with comments, in order to hopefully explain what each line is doing. We'll see how the class is used in the following tutorials.
 
 
 ```javascript
 class Grid {
-  // our grid (2D array) will contain simple integers to represent game objects;
-  // this map translates those numbers to a string, which can then be used as
-  // human-readable reference or CSS class (for display purposes)
-  cssClassMap = {};
-
   constructor(rows, columns) {
     this.rows = rows;
     this.columns = columns;
@@ -30,10 +32,11 @@ class Grid {
     // set up 2D array to use as data store for game logic & display
     this.state = Array(columns).fill().map(_ => Array(rows).fill());
 
-    // set up another 2D array to store references to DOM nodes (the actual HTML in the web page)
+    // set up 2D array to store references to DOM nodes
     this.gridRef = Array(columns).fill().map(_ => Array(rows).fill());
 
-    let grid = document.querySelector('#grid');
+    // the base HTML page needs to have an element with `id="grid"`
+    const grid = document.querySelector('#grid');
 
     // set appropriate CSS rules
     grid.style.display = 'grid';
@@ -41,9 +44,9 @@ class Grid {
     grid.style.gridTemplateColumns = `repeat(${columns}, auto)`;
     grid.style.aspectRatio = columns / rows;
 
-    // create the grid in our HTML page
-    for (let x = 0; x < this.columns; x += 1) {
-      for (let y = 0; y < this.rows; y += 1) {
+    // fill the grid with `<div>` elements
+    for (let y = 0; y < this.rows; y += 1) {
+      for (let x = 0; x < this.columns; x += 1) {
         // create a DOM node for each element in the backing array
         let node = document.createElement('div');
 
@@ -61,21 +64,21 @@ class Grid {
     }
   }
 
-  update(nextState) {
+  updateState(nextState) {
     // enumerate through the current/new state arrays to update the changed values
     for (let x = 0; x < this.columns; x += 1) {
       for (let y = 0; y < this.rows; y += 1) {
-        // if no changes, continue to the next cell
+        // if old state & new state are the same, nothing needs to be updated
         if (this.state[x][y] === nextState[x][y]) {
           continue;
         }
 
-        // update the CSS class of the cell 
-        this.gridRef[x][y].classList = this.cssClassMap[nextState[x][y]];
+        // otherwise, update the CSS class of the grid cell
+        this.gridRef[x][y].classList = nextState[x][y];
       }
     }
 
-    // set the next state as current state
+    // set the new current state
     this.state = nextState;
   }
 
@@ -89,12 +92,17 @@ class Grid {
     return grid.map(row => row.fill(value));
   }
 
-  // helper method to generate a random (x,y) point in the grid
-  randomPoint() {
+  // helper method to get a random point in the grid
+  get randomPoint() {
     return {
       x: Math.floor(Math.random() * this.columns),
       y: Math.floor(Math.random() * this.rows)
     };
+  }
+
+  // helper method to determine if point is in grid
+  withinBounds({ x, y }) {
+    return x >= 0 && x < this.columns && y >= 0 && y < this.rows;
   }
 }
 ```
