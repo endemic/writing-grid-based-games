@@ -13,7 +13,7 @@ comments: []
 
 https://en.wikipedia.org/wiki/Knight%27s_tour
 
-I learned about Knight's Tour from Steve Wozniak's autobiograhy. The basic gist is that the player tries to move a single chess knight to each square on an 8x8 chess board, but you can only land on each square one time. The challenge being that the wonky movement rules of the knight means you can get stuck pretty easily. Well, you had me at "8x8 chess board" &mdash; that's a grid! We can easily make a web version of this game by using a 2D array to keep track of the game's data.
+I learned about Knight's Tour from [Steve Wozniak's autobiograhy](https://en.wikipedia.org/wiki/IWoz). He made a hardware version of the game when he was still a student, which I found pretty amazing. The basic gist is that a player tries to move a single chess knight to each square on an 8x8 chess board, but you can only land on each square once. The challenge comes from the wonky movement rules of the knight, which means you can get stuck pretty easily. Well, you had me at "8x8 chess board" &mdash; that's a grid! We can easily make a web version of this game by using a 2D array to keep track of the game's data.
 
 Download the [grid.js starter template](), then edit `scripts/game.js` to create that 8x8 grid. The one bit of extra logic we'll run here is to fill the grid with alternating black & white tiles, in order to make it look like a chess board.
 
@@ -39,12 +39,23 @@ class Game extends Grid {
 }
 ```
 
-Add the following CSS rules to the main stylesheet. Download a copy of `knight.png` here. Reload the page to see the chessboard pattern.
+Add the following CSS rules to the main stylesheet. Download a copy of [`knight.png`]() and put it in the `images` folder. Reload the page to see the chessboard pattern.
 
 ```css
+body {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#grid {
+  width: 75%;
+}
+
 .white { background: white; }
 .black { background: black; }
-.visited { background: grey; }
+.visited { background: limegreen; }
 .knight { background: url('../images/knight.png') center/100%; }
 ```
 
@@ -85,7 +96,7 @@ nextState[this.knight.x][this.knight.y] = 'knight';
 this.render(nextState);
 ```
 
-This code will place the knight wherever the player clicks. Reload and click around. Kinda cool, but this isn't exactly the functionality that we want, which is to have a single knight move around the board. Let's update `onClick` so that when a new cell is clicked, the knight moves there, and the previous cell is marked as "visited" (the idea being that you can't land on the same spot twice).
+This code will place the knight wherever the player clicks. Reload and click around &mdash; you should be able to create knight pieces. Kinda cool, but this isn't exactly the functionality that we want, which is to have a single knight move around the board. Let's update `onClick` so that when a new cell is clicked, the knight moves there, and the previous cell is marked as "visited" (the idea being that you can't land on the same spot twice).
 
 ```javascript
 // `onClick`
@@ -100,6 +111,9 @@ if (!this.knight) {
 
   // move the knight to the new spot
   this.knight = clicked;
+
+  // draw the knight on the grid
+  nextState[this.knight.x][this.knight.y] = 'knight';
 }
 
 this.render(nextState);
@@ -124,6 +138,9 @@ if (!this.knight) {
 } else {
   console.log(`(${clicked.x}, ${clicked.y}) was already visited!`);
 }
+
+// draw the knight on the new spot
+nextState[this.knight.x][this.knight.y] = 'knight';
 
 this.render(nextState);
 ```
@@ -152,7 +169,7 @@ const allowedMoves = [
 ];
 ```
 
-So all we need to do is check if the `allowedMoves` array contains (x, y) values that are equal to the `clicked` object.
+So what we need to do is check if the `allowedMoves` array contains (x, y) values that are equal to the `clicked` object.
 
 ```javascript
 // `onClick`
@@ -184,6 +201,7 @@ if (!this.knight) {
 
   // check if clicked.x/clicked.y match any of the allowed moves
   // if so, the spot the user clicked is valid!
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some
   let valid = allowedMoves.some(({x, y}) => x === clicked.x && y === clicked.y);
 
   if (valid) {
@@ -199,10 +217,46 @@ if (!this.knight) {
   console.log(`(${clicked.x}, ${clicked.y}) was already visited!`);
 }
 
+// draw the knight on the grid
+nextState[this.knight.x][this.knight.y] = 'knight';
+
 this.render(nextState);
 ```
 
-Exercises for the reader
+The core functionality and logic of the game are now complete. The last feature we'll add is a function to check if the player has "won," by visiting all 64 squares on the board. At the end of the game, there will be no more moves left, because each square in our grid will have a value of `visited`, except for the last square which will have the knight. So to check for a win condition, we iterate over the game board and check that only those two values are present.
+
+```javascript
+checkWin() {
+  const state = this.currentState;
+
+  for (let y = 0; y < this.rows; y += 1) {
+    for (let x = 0; x < this.columns; x += 1) {
+      if (state[x][y] !== 'visited' && state[x][y] !== 'knight') {
+        return false;
+      }
+    }
+  }
+
+  // if we've made it here, then the entire grid has been visited
+  return true;
+}
+```
+
+This method can then be used at the very end of the `onClick` method, to display a message to the player if they manage to finish the game.
+
+```javascript
+// at the end of `onClick`
+
+this.render(nextState);
+
+if (this.checkWin()) {
+  alert('Congratulations!);
+}
+```
+
+That's it! If you get stuck, [download a copy of the completed project]() and compare it with what you've typed in.
+
+## Exercises left for the reader
 
 1. Keep score: increment a point counter whenever the player makes a successful move
 2. Reset: add a button to the page that resets the game, rather than making the player reload the page
