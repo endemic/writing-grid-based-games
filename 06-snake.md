@@ -14,21 +14,23 @@ https://en.wikipedia.org/wiki/Snake_(video_game_genre)
 
 One classic genre for casual games is named, appropriately, "Snake." The basic idea of these sorts of games is that you control a snake, which gets ever longer. The challenge being that in order to score points, you move the snake across "apples" (or mice, or whatever) that increase the snake's length. The snake continually moves in whatever direction it is facing, and if the head touches any part of the body, you lose.
 
-This sort of game is perfect for a grid; each "segment" of the snake's body can be represented by a grid cell. In this implementation, the "snake" object consists of an array of Cartesian coordinates. The snake can then be moved one square at a time by shifting a new set of coordinates as the first element of the array, and popping the last set of coordinates off the end of the array.
+This sort of game is perfect for a grid; each "segment" of the snake's body can be represented by a grid cell. In this version, the "snake" object consists of an array of points, represented by Cartesian coordinates. The snake can then be moved one square at a time by inserting a new set of coordinates as the first element of the array, and popping the last set of coordinates off the end of the array.
 
 The initial game setup is fairly basic. 
 
 ```javascript
 class Snake extends Grid {
   constructor() {
-    super(rows = 50, columns = 50);
+    const rows = 50;
+    const columns = 50;
+    super(rows, columns);
 
     let nextState = this.currentState;
 
     // use the built-in `fill` method for initial empty background
     nextState = this.fill(nextState, 'empty');
 
-    // set up initial snake position
+    // Set up the "snake" object -- each {x, y} object is a segment of the snake
     this.snake = [
         { x: 25, y: 25 }, // this is the "head" of the snake
         { x: 24, y: 25 },
@@ -36,13 +38,13 @@ class Snake extends Grid {
         { x: 22, y: 25 }
     ];
 
-    // draw the snaaake
+    // Update the correct grid cells with the snake's body
     for (const {x, y} of this.snake) {
       nextState[x][y] = 'snake';
     }
 
     // do initial update, which draws the background & snake
-    this.render(nextState);
+    this.updateState(nextState);
   }
 }
 ```
@@ -54,9 +56,9 @@ Add the following style rules to `main.css`, in order to represent the game back
 .snake { background: limegreen; }
 ```
 
-Load `index.html` in a browser and you should see a 50x50 grid, with a green "snake" in the center.
+Load `index.html` in a browser and you should see a 50x50 grid, with a green "snake" in the center. Jawesome!
 
-Jawesome! Now that the basics are in place, next step is to get the snake a-movin'. Since the snake is supposed to continually move forward (even without player input), we'll need some sort of `update` function that is called every few milliseconds that runs code to update the snake's position. One way to regularly have a function called in JavaScript is using the global `setInterval(callback, milliseconds)` method, which runs `callback` every `milliseconds` ms. `setInterval` isn't precise; the duration of time between callbacks running can vary based on various circumstances, but it's fine for our purposes.
+Now that the basics are in place, next step is to get the snake a-movin'. Since the snake is supposed to continually move forward (even without player input), we'll need some sort of function that is called every few milliseconds that runs code to update the snake's position. One way to regularly have a function called in JavaScript is using the global `setInterval(callback, milliseconds)` method, which runs `callback` every `milliseconds` ms. `setInterval` isn't precise; the duration of time between callbacks running can vary based on various circumstances, but it's fine for our purposes.
 
 In the class `constructor` method, add this line which runs `update` every 30ms:
 
@@ -64,8 +66,7 @@ In the class `constructor` method, add this line which runs `update` every 30ms:
   window.setInterval(() => this.update(), 30);
 ```
 
-
-https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
+Now that we've referenced the `update` function, we actually have to write it.
 
 ```javascript
 update() {
@@ -78,7 +79,10 @@ update() {
 
   // determine the next place the snake will move to
   let currentSnakeHead = this.snake[0];
-  let nextSnakeHead = {...currentSnakeHead};
+  let nextSnakeHead = {
+    x: currentSnakeHead.x,
+    y: currentSnakeHead.y
+  };
   
   // for now, it will always move to the right
   nextSnakeHead.x += 1;
@@ -88,7 +92,8 @@ update() {
     nextSnakeHead.x = 0;
   }
 
-  // push new snake head on to the body
+  // `unshift` pushes an element on to the front of an array,
+  // making it the new [0] element
   this.snake.unshift(nextSnakeHead);
 
   // pop off the last tail segment
@@ -99,13 +104,13 @@ update() {
     nextState[x][y] = 'snake';
   }
 
-  this.render(nextState);
+  this.updateState(nextState);
 }
 ```
 
 Save the game source file and reload the page; you should see the snake continually moving from left to right.
 
-Nice! We've gone from static to dynamic &mdash; and the next step is to add interactivity. For simplicity's sake, we'll focus on using a keyboard for user input; touch controls will be left as an exercise for the reader. Similarly to how we called a global JavaScript method to regularly update the game display, we'll call another global method to detect key presses. In the `constructor` function, write this line to add an "event listener" to the page:
+Nice! We've gone from static to dynamic &mdash; and the next step is to add interactivity. For simplicity's sake, we'll focus on using a keyboard for user input; touch controls will be left as an exercise for the reader. Similarly to how we called a global JavaScript method (`window.setInterval`) to regularly update the game display, we'll call another global method to detect key presses. In the `constructor` function, write this line to add an "event listener" to the page:
 
 ```javascript
 window.addEventListener('keydown', event => this.onKeyDown(event));
@@ -125,6 +130,15 @@ onKeyDown(event) {
 Reload the page and mash the keyboard. You should see a cacaphony of log messages show up in the developer console. This lets you know that the keyboard input handler actually works. Now we need to add logic that actually changes the direction the snek is moving. We didn't initially build in that capability, so we have to go back in and update the object that represents the snake. Instead of being just an array of coordinates, the snake will also store data about the next point it will move to. Rewrite the declaration of the `this.snake` instance variable that is defined in the `constructor` function:
 
 ```javascript
+// Get rid of this
+// this.snake = [
+//     { x: 25, y: 25 },
+//     { x: 24, y: 25 },
+//     { x: 23, y: 25 },
+//     { x: 22, y: 25 }
+// ];
+
+// Add this
 this.snake = {
   position: [
     { x: 25, y: 25 }, // this is the "head" of the snake
@@ -136,7 +150,7 @@ this.snake = {
 }
 ```
 
-Now the snake has both a `position` property, which stores its location, as well as a `next` property, which shows the direction it is moving in. As a default, we're having it move to the right (x + 1), just as it was doing previously. The code that draws the snake also has to change slightly, by referencing the `position` array:
+Now the snake has both a `position` property, which stores its segment locations, as well as a `next` property, which shows the direction it is moving in. As a default, we're having it move to the right (x + 1), just as it was doing previously. The code that draws the snake also has to change slightly, by referencing the `position` array:
 
 ```javascript
 // draw the snaaake
@@ -158,10 +172,10 @@ update() {
 
   // determine the next place the snake will move to
   let currentSnakeHead = this.snake.position[0];
-  let nextSnakeHead = {...currentSnakeHead};
-  
-  nextSnakeHead.x += this.snake.next.x;
-  nextSnakeHead.y += this.snake.next.y;
+  let nextSnakeHead = {
+    x: currentSnakeHead.x + this.snake.next.x,
+    y: currentSnakeHead.y + this.snake.next.y
+  };
 
   // this check will "wrap" the snake around the screen
   if (nextSnakeHead.x >= this.columns) {
@@ -181,6 +195,6 @@ update() {
     nextState[x][y] = 'snake';
   }
 
-  this.render(nextState);
+  this.updateState(nextState);
 }
 ```
