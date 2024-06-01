@@ -1,3 +1,5 @@
+// TODO: put this stuff in grid.js
+
 class SwipeExample {
   constructor() {
     window.addEventListener('touchstart', event => this.onTouchStart(event));
