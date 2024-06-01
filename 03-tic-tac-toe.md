@@ -83,7 +83,28 @@ const winConditions = [
   [{x: 0, y: 2}, {x: 1, y: 1}, {x: 2, y: 0}], // diagonal 2
 ];
 
-winConditions.forEach(group => {
-  // use reduce here to get the winning player? or is that too complicated
-});
+for (const group of winConditions) {
+  const playerXWins = ;
+  const playerOWins = ;
+
+  let winner;
+
+  if (group.every(square => Grid.currentState[square.x][square.y] === 'x')) {
+    winner = 'X';
+  } else if (group.every(square => Grid.currentState[square.x][square.y] === 'o')) {
+    winner = 'O';
+  }
+
+  if (winner) {
+    alert(`Player "${winner}" wins!`);
+
+    Grid.fill('');  // blank out the grid, so you can start a new game
+
+    break;  // no longer need to check for other winning rows/columns
+  }
+}
 ```
+
+Put this block after the condition that swaps player turns. This should correctly identify when one player has won, and reset the game.
+
+
