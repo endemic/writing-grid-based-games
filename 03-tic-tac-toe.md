@@ -70,7 +70,7 @@ Now, when you click or tap an empty square, either an _X_ or _O_ will be placed 
 In total, there are eight ways to win: fill in a column (3), a row (3), or one of the diagonals (2). We can make a list of each of these valid win conditions, and then loop through the list, checking the value of each square in the grid.
 
 ```javascript
-const winConditions = [
+const winPositions = [
   [{x: 0, y: 0}, {x: 1, y: 0}, {x: 2, y: 0}], // row 1
   [{x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}], // row 2
   [{x: 0, y: 2}, {x: 1, y: 2}, {x: 2, y: 2}], // row 3
@@ -83,15 +83,12 @@ const winConditions = [
   [{x: 0, y: 2}, {x: 1, y: 1}, {x: 2, y: 0}], // diagonal 2
 ];
 
-for (const group of winConditions) {
-  const playerXWins = ;
-  const playerOWins = ;
-
+for (const group of winPositions) {
   let winner;
 
-  if (group.every(square => Grid.currentState[square.x][square.y] === 'x')) {
+  if (group.every(square => nextState[square.x][square.y] === 'x')) {
     winner = 'X';
-  } else if (group.every(square => Grid.currentState[square.x][square.y] === 'o')) {
+  } else if (group.every(square => nextState[square.x][square.y] === 'o')) {
     winner = 'O';
   }
 
@@ -105,6 +102,32 @@ for (const group of winConditions) {
 }
 ```
 
-Put this block after the condition that swaps player turns. This should correctly identify when one player has won, and reset the game.
+Put this code block after the condition that swaps player turns. This should correctly identify when one player has won, and reset the game.
 
+There's one bit of logic left to implement, however, and that's determining when all squares in the board have been filled in &mdash; basically a tied game. Checking for this state is a bit easier than finding out if a particular player has won the game; we just need to check each (x, y) position, and if they're all filled, then reset the game.
 
+```javascript
+// start with the assumption that all squares have been used
+let gameOver = true;
+
+// loop over each x/y value
+for (let x = 0; x < columns; x += 1) {
+  for (let y = 0; y < rows; y += 1) {
+    // if we find any empty square, it means the game isn't over yet
+    if (Grid.isEmpty(nextState[x][y])) {
+      gameOver = false;
+
+      // and we can stop looping over x/y positions
+      break;
+    }
+  }
+}
+
+if (gameOver) {
+  alert('Tie game!');
+
+  Grid.fill('');  // blank out the grid, so you can start a new game
+}
+```
+
+And that's it! You've created a version of tic-tac-toe that's playable via a web browser. If the game doesn't work as you expect, you can download the completed project source and compare with what you've written. This sets the stage for making more complicated games in the future.
