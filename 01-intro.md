@@ -10,29 +10,27 @@ categories:
 - games
 comments: []
 ---
-Ever since regular people have had casual access to computing resources, they have written game programs. _(insert aside about [Spacewar! on PDP-1](https://en.wikipedia.org/wiki/Spacewar!))_ I'm sure we could discuss at length the psychology of play, and why electronic games are so compelling. My own theory is that writing game programs fulfills an innate creative need for world-building. There's just something about setting up rules for an interactive environment, and seeing the simulation conform to those rules, that gives one a sense of power and achievement. Game programming falls on the rebellious side of the dichotomy of computing; resources are used for whimsy and fun, as opposed to Serious Business and Making Money (although sometimes these ideas intersect).
+Ever since people have had access to computers, they have written games for them. I'm sure we could discuss at length the psychology of play, and why electronic games are so compelling. My own theory is that writing game programs fulfills an innate creative need for world-building. There's just _something_ about setting up rules for an interactive environment, and seeing the simulation conform to those rules, that gives one a sense of power and achievement. Game programming falls on the rebellious side of the dichotomy of computing; resources are used for whimsy and fun, as opposed to Serious Business and Making Money (although sometimes these ideas intersect).
 
-The explosion in popularity of the internet created a new platform for software. With the first generation of web browsers, these programs were fairly primitive &mdash; data needed to be saved and displayed by a web server, and any user interaction required a full page refresh cycle. I played a number of games that used this style.
+The explosion in popularity of the [world wide web](https://en.wikipedia.org/wiki/World_Wide_Web) created a new platform for software, including games. Distribution was suddenly a lot easier: instead of having to copy a game with a floppy disk or CD, a player could download it. However, a few enterprising folks skipped the "download" part and made games playable directly in the browser. The first generation of these games were fairly primitive &mdash; data needed to be saved and displayed by a web server, which meant that play was very slow paced, more akin to interactive fiction &mdash; you make a choice in the game by clicking a link or button, then wait for the server to send you back an updated page. I played (and developed!) a number of games like this.
 
-As JavaScript became standardized across browsers, more and more web software shifted computing responsibility from the "back-end" to the "front-end." _(discuss Flash)_ This included games, of course. One new web standard that was added to browsers was the `<canvas>` element, which lots of folks used for games. It basically offers a bitmap that can be drawn on programmatically. This is great for games, as it mimics what you might use in a computer game running "natively" &mdash; i.e. outside a web browser. The canvas can even be drawn on using 3D programming techniques, via WebGL.
+While clicking from page to page is servicable for documents and turn-based games, developers and users wanted more interactivity from the web. Various attempts were made to allow programs to be embedded within web pages, such as [Java applets](https://en.wikipedia.org/wiki/Java_applet) and [Flash](https://en.wikipedia.org/wiki/Adobe_Flash). The problem with these technologies was that they relied on the user installing additional 3rd party software on their computer, and in some cases presented security risks due to bugs. However, that didn't stop lots of folks from making games with them, especially Flash &mdash; if you're old enough, you might remember the heyday of sites like Newgrounds and Kongregate.
 
-The only problem with using `<canvas>` for a game is that you throw away two of the traditional building blocks of the web &mdash; HTML and CSS. I've always enjoyed (ab)using technology in ways unintended by the original use case, and want to merge two of my interests &mdash; games and web pages. One of the solutions I've found for this conundrum is to _keep_ HTML and CSS, and use them for a game's graphics. This simplifies a few things for the developer.
+These 3rd party solutions to getting real-time interactivity (read: games) into the web started to become less popular as JavaScript became more standardized (and capable) across different browsers. The introduction of the `<canvas>` HTML element let developers draw graphics directly to a web page, without the user needing to install more programs. This was especially important for smartphones, as Mobile Safari never allowed browser plugins, and the Android version of Flash was a train wreck. With `<canvas>`, game developers can now make basically any sort of game imaginable, and have it embedded directly in a website.
 
-1. If you have a background in web development, HTML and CSS should be tools that you already know. Conversely, if you don't have prior experience, learning these tools has real-world benefits outside of game-making &mdash; for example, my day job is in web development, which includes laying out user interfaces using HTML/CSS.
+My own journey making games for the web has vascillated between using `<canvas>` ([exhibit A](https://github.com/endemic/arcadia)) and old-fashioned HTML and CSS. While `<canvas>` is more like a "traditional" game development environment, using HTML &amp; CSS as the building blocks for a game has a few advantages:
 
-2. Loading game graphics can be handled by the browser. Define backgrounds for HTML elements in CSS, and the files are loaded automatically.
+1. If you have a background in web development, HTML &amp; CSS should be tools that you already know. Conversely, if you don't have prior experience, learning these tools has real-world benefits outside of game-making &mdash; for example, my day job is in web development, which includes laying out user interfaces using HTML/CSS.
 
-3. CSS transforms and transitions can be used to manipulate game objects, rather than needing to write or import your own tweening functions.
+2. Loading game resources can be handled by the browser. Define backgrounds for HTML elements in CSS, and the image files are loaded automatically.
 
+3. CSS transforms and transitions can be used to move game objects, rather than needing to write (or import) your own tweening functions.
 
-why web-based games?
+4. Event handling and collision detection can be done by the browser, without needing to write your own code.
 
-1. games are fun
-2. instant gratification for users; no install necessary
-3. low commitment in a sandboxed environment
-4. fun to bend the rules of what is essentially a glorified document viewer
-5. the skills/techniques used are transferrable to other web development endeavors
-6. easy to use browser abstractions for update loops and user input
+The common thread that connects this list is laziness: writing less code means you can complete a project faster and with fewer bugs.
+
+I'm basically all about the "low code" solution. 
 
 why grid-based games?
 
