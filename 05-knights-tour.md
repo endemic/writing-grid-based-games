@@ -34,7 +34,7 @@ class Game extends Grid {
       }
     }
 
-    this.render(nextState);
+    Grid.update(nextState);
   }
 }
 ```
@@ -88,12 +88,12 @@ Now that basic interactivity has been hooked up, we can start looking at game lo
 // `onClick`
 let nextState = this.currentState;
 
-this.knight = clicked;
+knight = clicked;
 
 // draw the knight on the grid
-nextState[this.knight.x][this.knight.y] = 'knight';
+nextState[knight.x][knight.y] = 'knight';
 
-this.render(nextState);
+Grid.update(nextState);
 ```
 
 This code will place the knight wherever the player clicks. Reload and click around &mdash; you should be able to create knight pieces. Kinda cool, but this isn't exactly the functionality that we want, which is to have a single knight move around the board. Let's update `onClick` so that when a new cell is clicked, the knight moves there, and the previous cell is marked as "visited" (the idea being that you can't land on the same spot twice).
@@ -103,52 +103,52 @@ This code will place the knight wherever the player clicks. Reload and click aro
 let nextState = this.currentState;
 
 // handle condition for first move -- you can start anywhere
-if (!this.knight) {
-  this.knight = clicked;
+if (!knight) {
+  knight = clicked;
 } else {
   // mark the old spot as "visited"
-  nextState[this.knight.x][this.knight.y] = 'visited';
+  nextState[knight.x][knight.y] = 'visited';
 
   // move the knight to the new spot
-  this.knight = clicked;
+  knight = clicked;
 
   // draw the knight on the grid
-  nextState[this.knight.x][this.knight.y] = 'knight';
+  nextState[knight.x][knight.y] = 'knight';
 }
 
-this.render(nextState);
+Grid.update(nextState);
 ```
 
 Alright, more progress. Now there is only a single knight that can move around the board. But we still need to program in more game logic: the knight can't land on any "visited" spaces, and has to move like it does in the game of chess (two forward, one to the side). The first condition is simple to implement: check the value of the clicked cell to see if it is `visited` or not.
 
 ```javascript
 // `onClick`
-let nextState = this.currentState;
+let nextState = Grid.currentState;
 
 // handle condition for first move -- you can start anywhere
-if (!this.knight) {
-  this.knight = clicked;
+if (!knight) {
+  knight = clicked;
 // can't move to any visited space
 } else if (nextState[clicked.x][clicked.y] !== 'visited') {
   // mark the old spot as "visited"
-  nextState[this.knight.x][this.knight.y] = 'visited';
+  nextState[knight.x][knight.y] = 'visited';
 
   // move the knight to the new spot
-  this.knight = clicked;
+  knight = clicked;
 } else {
   console.log(`(${clicked.x}, ${clicked.y}) was already visited!`);
 }
 
 // draw the knight on the new spot
-nextState[this.knight.x][this.knight.y] = 'knight';
+nextState[knight.x][knight.y] = 'knight';
 
-this.render(nextState);
+Grid.update(nextState);
 ```
 
 The movement rule shouldn't be too hard to program in either. Given the current (x, y) position of the knight, we can generate a list of allowable spaces by adding or subtracting from the knight's location. For example, we can create an array of `{x, y}` objects that represent valid moves:
 
 ```javascript
-const {x, y} = this.knight;
+const {x, y} = knight;
 
 const allowedMoves = [
   // above
@@ -176,11 +176,11 @@ So what we need to do is check if the `allowedMoves` array contains (x, y) value
 let nextState = this.currentState;
 
 // handle condition for first move -- you can start anywhere
-if (!this.knight) {
-  this.knight = clicked;
+if (!knight) {
+  knight = clicked;
 // can't move to any visited space
 } else if (nextState[clicked.x][clicked.y] !== 'visited') {
-  const {x, y} = this.knight;
+  const {x, y} = knight;
   const allowedMoves = [
     // above
     { x: x - 1, y: y - 2},
@@ -206,10 +206,10 @@ if (!this.knight) {
 
   if (valid) {
     // mark the old spot as "visited"
-    nextState[this.knight.x][this.knight.y] = 'visited';
+    nextState[knight.x][knight.y] = 'visited';
 
     // move the knight to the new spot
-    this.knight = clicked;
+    knight = clicked;
   } else {
     console.log(`(${clicked.x}, ${clicked.y}) is an invalid move!`);
   }
@@ -218,26 +218,27 @@ if (!this.knight) {
 }
 
 // draw the knight on the grid
-nextState[this.knight.x][this.knight.y] = 'knight';
+nextState[knight.x][knight.y] = 'knight';
 
-this.render(nextState);
+Grid.update(nextState);
 ```
 
 The core functionality and logic of the game are now complete. The last feature we'll add is a function to check if the player has "won," by visiting all 64 squares on the board. At the end of the game, there will be no more moves left, because each square in our grid will have a value of `visited`, except for the last square which will have the knight. So to check for a win condition, we iterate over the game board and check that only those two values are present.
 
 ```javascript
-checkWin() {
-  const state = this.currentState;
+const wonGame = () => {
+  const state = Grid.currentState;
 
-  for (let y = 0; y < this.rows; y += 1) {
-    for (let x = 0; x < this.columns; x += 1) {
+  for (let y = 0; y < Grid.rows; y += 1) {
+    for (let x = 0; x < Grid.columns; x += 1) {
       if (state[x][y] !== 'visited' && state[x][y] !== 'knight') {
         return false;
       }
     }
   }
 
-  // if we've made it here, then the entire grid has been visited
+  // if we've made it here, then the entire grid has been visited,
+  // and the knight is in the last square
   return true;
 }
 ```
@@ -247,16 +248,16 @@ This method can then be used at the very end of the `onClick` method, to display
 ```javascript
 // at the end of `onClick`
 
-this.render(nextState);
+Grid.update(nextState);
 
-if (this.checkWin()) {
-  alert('Congratulations!);
+if (wonGame()) {
+  alert('Congratulations!');
 }
 ```
 
 That's it! If you get stuck, [download a copy of the completed project]() and compare it with what you've typed in.
 
-## Exercises left for the reader
+### Exercises left for the reader
 
 1. Keep score: increment a point counter whenever the player makes a successful move
 2. Reset: add a button to the page that resets the game, rather than making the player reload the page

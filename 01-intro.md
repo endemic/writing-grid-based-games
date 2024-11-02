@@ -5,7 +5,7 @@ title: Grid-based browser games
 author:
   display_name: Nathan
   email: n@demick.org
-date: 2023-09-11 10:21:38 -0400
+date: 2024-09-11 10:21:38 -0400
 categories:
 - games
 comments: []
@@ -30,12 +30,12 @@ My own journey making games for the web has vascillated between using `<canvas>`
 
 The common thread that connects this list is laziness: writing less code means you can complete a project faster and with fewer bugs.
 
-I'm basically all about the "low code" solution. 
+A while ago I was working on a puzzle game that used a square grid to display various parts of the game. While I was able to make it work using my home-grown `<canvas>` framework, I wondered if it would be easier to use something like Preact to make a more lightweight version. Turned out that it _was_.
 
-why grid-based games?
+I then had the idea to see how many different types of games I could make using a grid. Why a grid? It makes certain elements of game programming a lot easier:
 
-1. many game programming concepts are easier with a grid
    a. collision detection is just checking if an (x,y) coord is truthy or falsey
    b. easy to update only the cells that have changed
    c. mouse/touch input is dead simple to map to a grid
-   d. lots of games can be "deconstructed" to a grid
+
+I also liked the idea of purposefully constraining the technology behind the game, so that I could spend more time worrying about game logic rather than the "engine." After experimenting and writing a few games using a grid-based approach, I thought I'd write up some tutorials to share what I learned. Hopefully you'll find it interesting and be inspired to work on your own creations!
