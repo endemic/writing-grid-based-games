@@ -12,12 +12,11 @@ comments: []
 ---
 If you've ever played around with [old versions of Mac OS](https://infinitemac.org/), you'll be familiar with the concept of "desk accessories." These were small programs that could run alongside the currently running main app (the original Mac OS could only run one program at a time). One of the desk accessories was an implementation of the classic "[15 puzzle](https://en.wikipedia.org/wiki/15_puzzle)", programmed by [Andy Hertzfeld](https://www.folklore.org/StoryView.py?project=Macintosh&story=Puzzle.txt). Another example of this type of puzzle is an [easter egg](https://finalfantasy.fandom.com/wiki/15_Puzzle) in the classic NES game, Final Fantasy.
 
-This sort of game is a perfect candidate for a grid, and is an especially good one to start off with. The puzzle board can be represented as a 4x4 two-dimensional array, with each cell containing a value from 1 &mdash; 16 (16 being the "empty" space). The grid can be initialized randomly, then play occurs by clicking or tapping a tile that is next to the empty space. The tile then moves into the empty spot; continued interaction will (hopefully) order all the tiles.
+This sort of game is a perfect candidate for a grid, and is an especially good one to start off with. The puzzle board can be represented as a 4x4 grid, with each cell containing a value from 1 &mdash; 16 (16 being the "empty" space). The grid can be initialized randomly, then play occurs by clicking or tapping a tile that is next to the empty space. The tile then moves into the empty spot; the game continues until all the tiles are sorted from low to high.
 
-Setup is simple: we have a list of strings that represent each tile, and randomly insert them into the 4x4 "state" array.
+Setup is simple &mdash; we have a list of strings that represent each tile, and randomly insert them into the 4x4 "state" array. Download the [grid.js project template]() and make these changes to `game.js`:
 
-<pre><code class="language-diff-javascript diff-highlight">
-- const rows = 10;
+<pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
 - const columns = 10;
 + const rows = 4;
 + const columns = 4;
@@ -31,44 +30,66 @@ Grid.init(rows, columns);
 
 + for (let y = 0; y < rows; y += 1) {
 +   for (let x = 0; x < columns; x += 1) {
-+     // randomly populate
++     // choose a random value from the remaining tiles
 +     const randomIndex = Math.floor(Math.random() * tiles.length);
 +
-+     // remove the value from `tiles`, so it can't be used twice
++     // `splice` removes the value from the array, so it can't be used twice
++     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice
 +     nextState[x][y] = tiles.splice(randomIndex, 1)[0];
 +   }
 + }
 + 
 // update the game state
-Grid.update(nextState);
-</code></pre>
+Grid.update(nextState);</code></pre>
 
-Add the following to your `main.css` stylesheet. These class names correspond with the values that are stored in the 2D array that represents the game, and allow granular control over background images. For example, you could use a "sprite sheet," which is using the same image for all the backgrounds, but specifying different regions for each tile. In this example we'll keep things simple by defining a separate image file for each tile. This CSS rule specifies the path of the image file, and that it should be centered in the HTML `<div>` and take up 100% of the available space.
+Add the following to your `main.css` stylesheet. These class names match the strings that we used to represent each tile. So when a grid cell has a value of `one`, then the `.one` CSS rule gets applied to it. This list of rules specifies the path to a background image file, and says that it should be centered and take up 100% of the available space. You can either make your own numbered tile images, or [download some](). Make sure to put them in a subdirectory named `images`.
 
-```css
-.one { background: url('images/1.png') center/100%; }
-.two { background: url('images/2.png') center/100%; }
-.three { background: url('images/3.png') center/100%; }
-.four { background: url('images/4.png') center/100%; }
-.five { background: url('images/5.png') center/100%; }
-.six { background: url('images/6.png') center/100%; }
-.seven { background: url('images/7.png') center/100%; }
-.eight { background: url('images/8.png') center/100%; }
-.nine { background: url('images/9.png') center/100%; }
-.ten { background: url('images/10.png') center/100%; }
-.eleven { background: url('images/11.png') center/100%; }
-.twelve { background: url('images/12.png') center/100%; }
-.thirteen { background: url('images/13.png') center/100%; }
-.fourteen { background: url('images/14.png') center/100%; }
-.fifteen { background: url('images/15.png') center/100%; }
-.empty { background: url('../images/empty.png') center/20%; }
-```
+<pre><code class="language-diff-css diff-highlight">
++ .one { background: url('images/1.png') center/100%; }
++ .two { background: url('images/2.png') center/100%; }
++ .three { background: url('images/3.png') center/100%; }
++ .four { background: url('images/4.png') center/100%; }
++ .five { background: url('images/5.png') center/100%; }
++ .six { background: url('images/6.png') center/100%; }
++ .seven { background: url('images/7.png') center/100%; }
++ .eight { background: url('images/8.png') center/100%; }
++ .nine { background: url('images/9.png') center/100%; }
++ .ten { background: url('images/10.png') center/100%; }
++ .eleven { background: url('images/11.png') center/100%; }
++ .twelve { background: url('images/12.png') center/100%; }
++ .thirteen { background: url('images/13.png') center/100%; }
++ .fourteen { background: url('images/14.png') center/100%; }
++ .fifteen { background: url('images/15.png') center/100%; }
++ .empty { background: url('../images/empty.png') center/20%; }</code></pre>
 
 Save the `game.js` and `main.css` files, and load the `index.html` file in your browser. You should see a 4x4 grid, filled with sixteen different tiles in randomized locations. Reload the page to make sure they change every time.
 
-At this point, we've got the core of the game set up. A logical next step is to add support for user interaction. For HTML-based web games, this can be handled by a JavaScript event listener. Every interaction that a user does within the context of a web page (moving a mouse, clicking, tapping) can get a JavaScript function attached to it, so that game logic can be executed. In this case, we want to know when a player clicks (or taps) on the game grid; the idea being that if they tap on a tile that's next to the empty spot, the tapped tile moves.
+At this point, we've got the core of the game set up. A logical next step is to add support for user interaction. For browser games, this can be handled by a JavaScript event listener. Every interaction that a user does within the context of a web page (moving a mouse, clicking, tapping) can get a JavaScript function attached to it, so that game logic can be executed. In this case, we want to know when a player clicks (or taps) on the game grid; the idea being that if they tap on a tile that's next to the empty spot, the tapped tile moves.
 
-Now that we know what grid tile is being selected, we need to check the neighboring spaces in the grid to see if any of them are empty. For this type of game, we only have to check in the four cardinal directions, like so (imagine `x` is the clicked tile):
+Grid.js has some helper functions that try to abstract away some of the garbage that we don't care about. The `game.js` file in the project template already has an example of one of them: `Grid.onPointDown`. This function takes another function as an argument, which passes in an object with `x` and `y` keys. These are the Cartesian coordinates of the tile on the grid that the user clicked. Delete some of the existing code like so:
+
+```javascript
+- Grid.onKeyDown(({ key }) => {
+-   console.log(`pressed ${key}`);
+- });
+
+Grid.onPointDown(({ x, y }) => {
+  console.debug(`clicked grid cell (${x}, ${y})`);
+
+-   /* replace this with your own code! */
+-   const nextState = Grid.currentState;
+- 
+-   if (Grid.isEmpty(nextState[x][y])) {
+-     nextState[x][y] = 'highlight';
+-   } else {
+-     nextState[x][y] = '';
+-   }
+- 
+-   Grid.update(nextState);
+});
+```
+
+Save, then reload `index.html` in your browser. If you have the developer tools open and click around in the grid, you'll see the debug message with the (x, y) values of the tile you clicked. Now we can get on to adding some actual game logic. What we want to do is check if any of the tiles next to the one we clicked is `empty`. For this type of game, we only have to check in the four cardinal directions, like so (imagine `x` is the clicked tile):
 
 ```
 [ ][ ][ ][ ]
@@ -77,67 +98,38 @@ Now that we know what grid tile is being selected, we need to check the neighbor
 [ ][*][ ][ ]
 ```
 
-Given coordinates `(x, y)`, we can get the values of these neighbors by using a data structure similar to the following:
+Grid.js has yet another "helper" function that can get the (x, y) values of those neighbors &mdash; named, appropriately enough, `Grid.getNeighbors`. It will return an array of the four neighboring cells. Note however that it won't return cells that are outside the bounds of the grid (for example, if you click in a corner). We can run this function when a player clicks the grid, then check if any of the neighboring tiles are `empty`. If one of them is, we will swap values between that empty tile and the one the player touched. This gives the illusion of tiles sliding around the grid.
 
-```javascript
-let neighbors = [
-  { x: x, y: y - 1 }, // top
-  { x: x - 1, y: y }, // left
-  { x: x + 1, y: y }, // right
-  { x: x, y: y + 1 }, // bottom
-];
-```
+<pre><code class="language-diff-javascript diff-highlight">+ const state = Grid.currentState;
++ const neighbors = Grid.getNeighbors({ x, y });
++ 
++ // check each neighboring cell
++ for (let i = 0; i < neighbors.length; i += 1) {
++   const neighbor = neighbors[i];
++ 
++   if (state[neighbor.x][neighbor.y] === 'empty') {
++     // if a neighboring cell is empty, swap it with the one that was clicked
++     state[neighbor.x][neighbor.y] = state[x][y];
++     state[x][y] = 'empty';
++ 
++     // show the change
++     Grid.update(state);
++ 
++     // we don't need to check any of the other neighbors
++     // once we've found an empty cell, so can break out of the loop
++     break;
++   }
++ }</code></pre>
 
-Remember that in our grid, the origin (0, 0) is the upper left corner, and the y-axis values increase as you go "down." We can use this array in a new function, appropriately named `getNeighbors`. By passing `(x, y)` as arguments, we can get a list of the squares in each of the four cardinal directions next to the square we clicked.
+Save the `game.js` file and reload the page. You should now be able to click numbers next to the empty cell, and watch them move around. This is all the functionality that is required to successfully solve the puzzle! However, it would be nice to provide the player some sort of confirmation that they finished the game. To that end, we can write up a function that checks whether or not the contents of each grid cell is sorted. A quick way to do this is to make an array of strings with the tile values (similar to the one we used to initialize the game board), then compare the contents of each grid cell with the corresponding value of an incrementing index. For example, the cell at (0, 0) should be `one`, the cell at (1, 0) should be `two`, etc.
 
- One addition that I made is to ensure that the returned neighbors are "in-bounds" of the grid. For example, if I have a 4x4 grid, and I click the square at `(0, 0)`, I don't care about the neighboring squares at `(-1, 0)` or `(0, -1)` &mdash; they're outside the grid. In order to do this, I `filter` the list of neighbors, using a function named `withinBounds` ([defined in the `Grid` helper](https://github.com/endemic/gridjs/blob/main/grid.js#L78-L80)) as an argument. This ensures that returned neighboring cells are all valid.
+<pre><code class="language-diff-javascript diff-highlight">
+const hasWonGame = () => {
+  const state = Grid.currentState;
+  const tiles = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'empty'];
 
-```javascript
-const getNeighbors = ({ x, y }) => {
-  return [
-      { x: x, y: y - 1 }, // top
-      { x: x - 1, y: y }, // left
-      { x: x + 1, y: y }, // right
-      { x: x, y: y + 1 }, // bottom
-  ].filter(Grid.withinBounds);
-};
-```
-
-We can then update the `Grid.onPointDown` event handler function to include the following logic, which checks the grid cells around where the user clicked, and if one is empty, swaps the two.
-
-```javascript
-let nextState = Grid.currentState;
-let neighbors = getNeighbors({ x, y });
-
-// check each neighboring cell
-for (let i = 0; i < neighbors.length; i += 1) {
-  let point = neighbors[i];
-
-  if (nextState[point.x][point.y] === 'empty') {
-    // if a neighboring cell is empty, swap it with the one that was clicked
-    nextState[point.x][point.y] = nextState[clicked.x][clicked.y];
-    nextState[clicked.x][clicked.y] = 'empty';
-
-    // show the change
-    Grid.update(nextState);
-
-    // we don't need to check all the other neighbors
-    // once we've found an empty cell, so can break out of the loop
-    break;
-  }
-}
-```
-
-Save the `game.js` file and reload the page. You should now be able to click numbers next to the empty cell, and watch them move around. This is all the functionality that is required to successfully solve the puzzle! However, it would be nice to provide the player some sort of confirmation that they finished the game. To that end, we can write up a function that checks whether or not the contents of each grid cell is sorted. A quick way to do this is to make an array of strings &mdash; then compare the contents of each grid cell with the corresponding value of an incrementing index. For example, the cell at (0, 0) should be `one`, the cell at (1, 0) should be `two`, etc.
-
-```javascript
-const checkWin = () => {
-  let state = Grid.currentState;
-  let tiles = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'empty'];
-
-  // iterate through the rows/columns and expect the
-  // value of each cell to match the ordered `tiles` list
-  // nest the x loop inside the y loop, so the grid can be traversed like this:
+  // iterate through the rows/columns and expect the value of each cell to match the ordered `tiles` list
+  // we put the x loop _inside_ the y loop, so the grid values can be checked like this:
   // [ 1][ 2][ 3][ 4]
   // [ 5][ 6][ 7][ 8]
   // [ 9][10][11][12]
@@ -155,15 +147,25 @@ const checkWin = () => {
   }
 
   return true;
+};
+</code></pre>
+
+We can now use this method at the end of `Grid.onPointDown` to show an alert popup when the player solves the puzzle:
+
+<pre><code class="language-diff-javascript diff-highlight">    // we don't need to check any of the other neighbors
+    // once we've found an empty cell, so can break out of the loop
+    break;
+  }
 }
-```
++  
++ if (hasWonGame()) {
++   alert('Congratulations, a winner is you!');
++ }
+</code></pre>
 
-We can now use this method at the end of `onPointDown` to show an alert popup when the player solves the puzzle:
+We now have a completed puzzle game! If you're having problems, or the game isn't working as it should, download an example of the completed project to see what you might have missed.
 
-```javascript
-if (checkWin()) {
-  alert('Congratulations, you solved the puzzle!');
-}
-```
+### Extra Credit
 
-We now have a more-or-less completed puzzle game! If you're having problems, or the game isn't working as it should, download an example of the completed project to see what you might have missed.
+- [ ] Add a "reset" button
+    * In order to do this, you could make a function that contains the same logic that is at the start of the `game.js` script, which initially populates the grid with tile values. Then when a button is clicked, that function could be called.
