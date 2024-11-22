@@ -1,0 +1,33 @@
+title: Grid-based browser games
+author: Nathan Demick
+description: An introduction to making games using HTML and CSS
+content: |
+  Ever since people have had access to computers, they have written games for them. I'm sure we could discuss at length the psychology of play, and why electronic games are so compelling. My own theory is that writing game programs fulfills an innate creative need for world-building. There's just _something_ about setting up rules for an interactive environment, and seeing the simulation conform to those rules, that gives one a sense of power and achievement. Game programming falls on the rebellious side of the dichotomy of computing; resources are used for whimsy and fun, as opposed to Serious Business and Making Money (although sometimes these ideas intersect).
+
+  The explosion in popularity of the [world wide web](https://en.wikipedia.org/wiki/World_Wide_Web) created a new platform for software, including games. Distribution was suddenly a lot easier: instead of having to copy a game with a floppy disk or CD, a player could download it. However, a few enterprising folks skipped the "download" part and made games playable directly in the browser. The first generation of these games were fairly primitive &mdash; data needed to be saved and displayed by a web server, which meant that play was very slow paced, more akin to interactive fiction &mdash; you make a choice in the game by clicking a link or button, then wait for the server to send you back an updated page. I played (and developed!) a number of games like this.
+
+  While clicking from page to page is servicable for documents and turn-based games, developers and users wanted more interactivity from the web. Various attempts were made to allow programs to be embedded within web pages, such as [Java applets](https://en.wikipedia.org/wiki/Java_applet) and [Flash](https://en.wikipedia.org/wiki/Adobe_Flash). The problem with these technologies was that they relied on the user installing additional 3rd party software on their computer, and in some cases presented security risks due to bugs. However, that didn't stop lots of folks from making games with them, especially Flash &mdash; if you're old enough, you might remember the heyday of sites like Newgrounds and Kongregate.
+
+  These 3rd party solutions to getting real-time interactivity (read: games) into the web started to become less popular as JavaScript became more standardized (and capable) across different browsers. The introduction of the `<canvas>` HTML element let developers draw graphics directly to a web page, without the user needing to install more programs. This was especially important for smartphones, as Mobile Safari never allowed browser plugins, and the Android version of Flash was a train wreck. With `<canvas>`, game developers can now make basically any sort of game imaginable, and have it embedded directly in a website.
+
+  My own journey making games for the web has vascillated between using `<canvas>` ([exhibit A](https://github.com/endemic/arcadia)) and old-fashioned HTML and CSS. While `<canvas>` is more like a "traditional" game development environment, using HTML &amp; CSS as the building blocks for a game has a few advantages:
+
+  1. If you have a background in web development, HTML &amp; CSS should be tools that you already know. Conversely, if you don't have prior experience, learning these tools has real-world benefits outside of game-making &mdash; for example, my day job is in web development, which includes laying out user interfaces using HTML/CSS.
+
+  2. Loading game resources can be handled by the browser. Define backgrounds for HTML elements in CSS, and the image files are loaded automatically.
+
+  3. CSS transforms and transitions can be used to move game objects, rather than needing to write (or import) your own tweening functions.
+
+  4. Event handling and collision detection can be done by the browser, without needing to write your own code.
+
+  The common thread that connects this list is laziness: writing less code means you can complete a project faster and with fewer bugs.
+
+  A while ago I was working on a puzzle game that used a square grid to display various parts of the game. While I was able to make it work using my home-grown `<canvas>` framework, I wondered if it would be easier to use something like Preact to make a more lightweight version. Turned out that it _was_.
+
+  I then had the idea to see how many different types of games I could make using a grid. Why a grid? It makes certain elements of game programming a lot easier:
+
+    a. collision detection is just checking if an (x,y) coord is truthy or falsey
+    b. easy to update only the cells that have changed
+    c. mouse/touch input is dead simple to map to a grid
+
+  I also liked the idea of purposefully constraining the technology behind the game, so that I could spend more time worrying about game logic rather than the "engine." After experimenting and writing a few games using a grid-based approach, I thought I'd write up some tutorials to share what I learned. Hopefully you'll find it interesting and be inspired to work on your own creations!
