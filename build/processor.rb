@@ -4,9 +4,9 @@ require 'yaml'
 require 'kramdown'
 
 # load HTML template
-html_template = File.read('template.html')
+html_template = File.read('src/template.html')
 
-Dir.glob('*.yml').each do |file|
+Dir.glob('src/*.yml').each do |file|
   puts "Processing #{file}"
   template_data = YAML.load_file(file)
 
@@ -17,5 +17,5 @@ Dir.glob('*.yml').each do |file|
   html = html_template % template_data.transform_keys(&:to_sym)
 
   # write output
-  File.write("dist/#{file.gsub(/\.yml$/, '.html')}", html)
+  File.write("dist/#{file.split('/').pop.gsub(/\.yml$/, '.html')}", html)
 end

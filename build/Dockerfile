@@ -4,4 +4,4 @@ WORKDIR /app
 
 RUN gem install kramdown
 
-CMD ["./processor.rb"]
+CMD ["./build/processor.rb"]

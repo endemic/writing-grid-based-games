@@ -1,6 +1,6 @@
 title: Game #1: Tic-Tac-Toe
 author: Nathan Demick
-description: A simple game of tic-tac-toe using GridJS
+description: A simple game of tic-tac-toe using gridjs
 content: |
   One of the simplest games you can play on a grid is tic-tac-toe: mark spaces in a 3x3 grid with _X_ or _O_; the player who gets three in a row (horizontally, vertically, or diagonally) wins. Let's program a simple version of the game using GridJS. This will give a good introduction to some recurring concepts that you can use to build other games in the future.
 
