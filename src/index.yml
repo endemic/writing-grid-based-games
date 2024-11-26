@@ -22,7 +22,7 @@ content: |
 
   The common thread that connects this list is laziness: writing less code means you can complete a project faster and with fewer bugs.
 
-  A while ago I was working on a puzzle game that used a square grid to display various parts of the game. While I was able to make it work using my home-grown `<canvas>` framework, I wondered if it would be easier to use something like Preact to make a more lightweight version. Turned out that it _was_.
+  A while ago I was working on a puzzle game that used a square grid to display various parts of the game. While I was able to make it work using my home-grown `<canvas>` framework, I wondered if it would be easier to use a framework like React to make a more lightweight version. It turned out that it was indeed possible, but I wanted to see if I could go even simpler &mdash; instead of the complexity of React, I could reduce the complexity of the game to updating a grid of `<div>` elements. 
 
   I then had the idea to see how many different types of games I could make using a grid. Why a grid? It makes certain elements of game programming a lot easier:
 
@@ -30,4 +30,13 @@ content: |
     b. easy to update only the cells that have changed
     c. mouse/touch input is dead simple to map to a grid
 
-  I also liked the idea of purposefully constraining the technology behind the game, so that I could spend more time worrying about game logic rather than the "engine." After experimenting and writing a few games using a grid-based approach, I thought I'd write up some tutorials to share what I learned. Hopefully you'll find it interesting and be inspired to work on your own creations!
+  I also liked the idea of purposefully constraining the technology behind the game, so that I could spend more time worrying about game logic. After experimenting and making a few games using the grid-based approach, I thought I'd write up some tutorials to share what I learned. Hopefully you'll find it interesting and be inspired to work on your own creations!
+
+  ## Table of Contents
+
+  1. [Tic-Tac-Toe](01-tic-tac-toe.html)
+  2. Puzzle
+  3. Knight's Tour
+  4. Snake
+  5. Minesweeper
+  6. Sokoban
