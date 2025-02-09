@@ -1,4 +1,4 @@
 #!/bin/bash
 docker build ./build --tag processor
 docker run --rm --volume $(pwd):/app processor
-#rsync -av --safe-links --exclude 'build' --exclude '.git*' -e ssh ./dist ganbaru.games:/var/www/ganbaru.games/html/grid-based-games
+rsync -av --safe-links --exclude 'build' --exclude '.git*' -e ssh ./dist/* ganbaru.games:/var/www/ganbaru.games/html/writing-grid-based-games

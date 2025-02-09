@@ -1,4 +1,4 @@
-title: Game #1: Tic-Tac-Toe
+title: Game &#35;1&#58; Tic-Tac-Toe
 author: Nathan Demick
 description: A simple game of tic-tac-toe using gridjs
 content: |
@@ -46,7 +46,7 @@ content: |
     Grid.update(nextState);
   });</code></pre>
 
-  If you save the `game.js` file and load `index.html` in a browser (`File &rarr; Open File &rarr; index.html`), you should see a 3x3 grid in the center of the page. However, clicking squares inside doesn't seem to do anything. That's because GridJS uses CSS classes to apply styling to each square. The page looks for a class style of `.x` inside of `main.css`, but it's not there. Let's add it now. Make your own graphic files to represent an _X_ and _O_, or else download some samples here. Then add the following at the bottom of `main.css`:
+  If you save the `game.js` file and load `index.html` in a browser (<strong>File &rarr; Open File &rarr; index.html</strong>), you should see a 3x3 grid in the center of the page. However, clicking squares inside doesn't seem to do anything. That's because GridJS uses CSS classes to apply styling to each square. The page looks for a class style of `.x` inside of `main.css`, but it's not there. Let's add it now. Make your own graphic files to represent an _X_ and _O_, or else download some samples [here](assets/tic-tac-toe/images.zip). Then add the following at the bottom of `main.css`:
 
   <pre><code class="language-diff-css diff-highlight">#grid {
     /* ... */
@@ -72,13 +72,12 @@ content: |
 
   Now, when you click or tap an empty square, either an _X_ or _O_ will be placed there. We're getting close! The last part of the game is to check to see if a player has won, or whether it has ended in a tie. If we think about the grid in terms of Cartesian coordinates, it might look something like this:
 
-  ```
-  (0, 0) | (1, 0) | (2, 0)
+  <pre><code>(0, 0) | (1, 0) | (2, 0)
   ------------------------
   (0, 1) | (1, 1) | (2, 1)
   ------------------------
   (0, 2) | (1, 2) | (2, 2)
-  ```
+  </code></pre>
 
   In total, there are eight ways to win: fill in a column (3), a row (3), or one of the diagonals (2). We can make a list of each of these valid win conditions, and then loop through the list, checking the value of each square in the grid.
 
@@ -176,7 +175,7 @@ content: |
 
     const nextState = Grid.currentState;</code></pre>
 
-  And that's it! You've created a version of tic-tac-toe that's playable via a web browser. If the game doesn't work as you expect, you can download the completed project source and compare with what you've written. This sets the stage for making more complicated games in the future.
+  And that's it! You've created a version of tic-tac-toe that's playable via a web browser. If the game doesn't work as you expect, you can download the [completed project source](assets/tic-tac-toe/example.zip) and compare with what you've written. This sets the stage for making more complicated games in the future.
 
   ### Postscript
 
