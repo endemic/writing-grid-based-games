@@ -1,0 +1,11 @@
+figure {
+text-align: center;
+
+img, video {
+    border: 2px solid #333;
+    box-sizing: border-box;
+    width: 95%;
+}
+
+figcaption { display: block; font-size: 0.8rem; }
+}

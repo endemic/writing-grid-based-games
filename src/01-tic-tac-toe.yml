@@ -4,7 +4,7 @@ description: A simple game of tic-tac-toe using gridjs
 content: |
   One of the simplest games you can play on a grid is tic-tac-toe: mark spaces in a 3x3 grid with _X_ or _O_; the player who gets three in a row (horizontally, vertically, or diagonally) wins. Let's program a simple version of the game using GridJS. This will give a good introduction to some recurring concepts that you can use to build other games in the future.
 
-  First, download GridJS, which includes an `index.html` file that automatically loads the necessary JavaScript and CSS files. Next, open the `game.js` file in a text editor; you'll see that there is some example code there already which initializes a 10x10 grid, and sets up a simple event listener to toggle grid cell background colors. The first thing we can do is change the grid size to a 3x3 board.
+  First, [download GridJS](https://github.com/endemic/gridjs/releases), which includes an `index.html` file that automatically loads the necessary JavaScript and CSS files. Next, open the `game.js` file in a text editor; you'll see that there is some example code there already which initializes a 10x10 grid, and sets up a simple event listener to toggle grid cell background colors. The first thing we can do is change the grid size to a 3x3 board.
 
   <pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
   - const columns = 10;

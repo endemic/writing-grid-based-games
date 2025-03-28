@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Game &#35;3&#58; Knight's Tour | Ganbaru Games</title>
+    
+    <meta name="description" content="Make a "Knight's Tour" game with GridJS">
+    <meta name="author" content="Nathan Demick">
+
+    <meta property="og:title" content="Game &#35;3&#58; Knight's Tour" />
+    <meta property="og:description" content="Make a "Knight's Tour" game with GridJS" />
+
+    <link rel="stylesheet" href="https://ganbaru.games/assets/stylesheets/main.css">
+    <link rel="shortcut icon" href="https://ganbaru.games/assets/images/henohenomoheji.png" type="image/png">
+
+    <link rel="stylesheet" href="stylesheets/prism.css">
+    <link rel="stylesheet" href="stylesheets/extra.css">
+  </head>
+  <body>
+    <h1><span class="henohenomoheji"></span>Ganbaru Games</h1>
+
+    <div class="container">
+      <h2>Game &#35;3&#58; Knight's Tour</h2>
+
+      <section class="text">
+        <p>https://en.wikipedia.org/wiki/Knight%27s_tour</p>
+
+<p>I learned about Knight’s Tour from <a href="https://en.wikipedia.org/wiki/IWoz">Steve Wozniak’s autobiograhy</a>. He made a hardware version of the game when he was still a student, which I found pretty amazing. The basic gist is that a player tries to move a single chess knight to each square on an 8x8 chess board, but you can only land on each square once. The challenge comes from the wonky movement rules of the knight, which means you can get stuck pretty easily. Well, you had me at “8x8 chess board” — that’s a grid! We can easily make a web version of this game by using a 2D array to keep track of the game’s data.</p>
+
+<p><a href="https://github.com/endemic/gridjs/releases/tag/v1.0.1">Download grid.js</a>, then edit <code>game.js</code> to create that 8x8 grid. The one bit of extra logic we’ll run here is to fill the grid with alternating black and white tiles, in order to make it look like a chess board. Add the lines with a <code>+</code> in front, and remove lines prefixed by a <code>-</code>:</p>
+
+<pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
+- const columns = 10;
++ const rows = 8;
++ const columns = 8;
+
+Grid.init(rows, columns);
+
+- Grid.onKeyDown(({ key }) =&gt; {
+-   console.log(`pressed ${key}`);
+- });
+
++ let nextState = Grid.currentState;
++
++ // simple helper function to determine if a number is even or odd
++ const isEven = number =&gt; number % 2 === 0;
++
++ // make the grid look like a chessboard, with alternating white/black tiles
++ for (let y = 0; y &lt; rows; y += 1) {
++   for (let x = 0; x &lt; columns; x += 1) {
++     nextState[x][y] = isEven(x + y) ? 'white' : 'black';
++   }
++ }
++
++ Grid.update(nextState);
+
+Grid.onPointDown(({ x, y }) =&gt; {
+  //...</code></pre>
+
+<p>Add the following CSS rules to the end of <code>main.css</code>:</p>
+
+<pre><code class="language-diff-css diff-highlight">  .highlight {
+    background-color: blueviolet;
+  }
+}
++
++ body {
++   align-items: center;
++   display: flex;
++   flex-direction: column;
++   justify-content: center;
++ }
++
++ #grid {
++   width: 50%;
++ }
++
++ .white { background: white; }
++ .black { background: black; }
++ .visited { background: limegreen; }
++ .knight { background: url('knight.png') center/100%; }</code></pre>
+
+<p>Download a copy of <a href="assets/knights-tour/knight.png"><code>knight.png</code></a> and put it in same folder as the rest of the GridJS files. Save the <code>game.js</code> and <code>main.css</code> files, and load <code>index.html</code> in your browser (<strong>File → Open File → index.html</strong>). You should see a page that displays a grid with a chessboard pattern.</p>
+
+<figure>
+  <img src="assets/knights-tour/example_1.png" alt="image of chess board grid" />
+  <figcaption>the chess board!</figcaption>
+</figure>
+
+<p>We now need to handle user interactions. GridJS has a helper for this called <code>onPointDown</code> — this function will run a callback whenever the player clicks or touches the touchscreen. The code included in the <code>game.js</code> file already has an example of how this helper can be used; we’re going to delete some of that code and write our own. For this game, we’ll let the player choose their own starting point, which means the first click will place the knight piece. We can keep track of the knight’s position by using a local variable named, appropriately enough, <code>knight</code>.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">+ let knight;
++
+Grid.onPointDown(({ x, y }) =&gt; {
+  console.debug(`clicked grid cell (${x}, ${y})`);
+
+-   /* replace this with your own code! */
+  const nextState = Grid.currentState;
+
++   // save the knight's position
++   knight = {x, y};
++
++   // draw the knight on the grid
++   nextState[knight.x][knight.y] = 'knight';
++
+-   if (Grid.isEmpty(nextState[x][y])) {
+-     nextState[x][y] = 'highlight';
+-   } else {
+-     nextState[x][y] = '';
+-   }
+-
+  Grid.update(nextState);
+});
+</code></pre>
+
+<p>Save <code>game.js</code> and reload your browser. Now, click around on the grid — you should be able to create knight pieces in each cell.</p>
+
+<figure>
+  <img src="assets/knights-tour/example_2.png" alt="placing knight pieces on the chess board" />
+  <figcaption>placing knight pieces on the chess board</figcaption>
+</figure>
+
+<p>Kinda cool, but this isn’t exactly the functionality that we want, which is to have a single knight move around the board. Let’s update the code so that when a cell is clicked, the knight moves there, and the previous cell is marked as “visited” (the idea being that you can’t land on the same spot twice).</p>
+
+<pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) =&gt; {
+  console.debug(`clicked grid cell (${x}, ${y})`);
+
+  const nextState = Grid.currentState;
+
++ // if the knight has already been placed on the grid...
++ if (knight) {
++   // draw the current position as "visited"
++   nextState[knight.x][knight.y] = 'visited';
++ }
+
+  // save the knight's position
+  knight = {x, y};
+
+  // draw the knight on the grid
+  nextState[knight.x][knight.y] = 'knight';
+
+  Grid.update(nextState);
+});
+</code></pre>
+
+<p>More progress! Now there is only a single knight that can move around the board.</p>
+
+<figure>
+  <img src="assets/knights-tour/example_3.png" alt="moving a single knight piece on the chess board" />
+  <figcaption>moving a single knight piece on the chess board</figcaption>
+</figure>
+
+<p>But we still need to program in more game logic: the knight can’t land on any “visited” spaces, and has to move like it does in the game of chess (two forward, one to the side). The first condition is simple to implement: check the value of the clicked cell to see if it is <code>visited</code> or not. If it is, then we just <code>return</code> early and don’t execute the rest of the function.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) =&gt; {
+  console.debug(`clicked grid cell (${x}, ${y})`);
+
+  const nextState = Grid.currentState;
+
++ if (nextState[x][y] === 'visited') {
++   console.log(`(${clicked.x}, ${clicked.y}) was already visited!`);
++   return;
++ }
+
+  // if the knight has already been placed on the grid...
+  if (knight) {
+      // draw the current position as "visited"
+      nextState[knight.x][knight.y] = 'visited';
+  }
+
+  // set the new knight position
+  knight = {x, y};
+
+  // draw on the grid
+  nextState[knight.x][knight.y] = 'knight';
+
+  Grid.update(nextState);
+});
+</code></pre>
+
+<p>The movement rule shouldn’t be too hard to add in either. Given the current <strong>(x, y)</strong> position of the knight, we can generate a list of allowable spaces by adding or subtracting from the knight’s location. For example, we can create an array of <code>{x, y}</code> objects that represent valid moves:</p>
+
+<pre><code class="language-diff-javascript diff-highlight">const {x, y} = knight;
+
+const allowedMoves = [
+  // above
+  { x: x - 1, y: y - 2},
+  { x: x + 1, y: y - 2},
+
+  // left
+  { x: x - 2, y: y - 1},
+  { x: x - 2, y: y + 1},
+
+  // right
+  { x: x + 2, y: y - 1},
+  { x: x + 2, y: y + 1},
+
+  // below
+  { x: x - 1, y: y + 2},
+  { x: x + 1, y: y + 2},
+];
+</code></pre>
+
+<p>If you’re a visual person, like me, you could imagine the <code>allowedMoves</code> array looks something like this, with <code>K</code> being the knight, and <code>x</code> being a valid move:</p>
+
+<pre><strong>[ ][x][ ][x][ ]
+[x][ ][ ][ ][x]
+[ ][ ][K][ ][ ]
+[x][ ][ ][ ][x]
+[ ][x][ ][x][ ]</strong></pre>
+
+<p>So what we need to do is check if the <code>allowedMoves</code> array contains (x, y) values that are equal to where the player clicked.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">
+// `onClick`
+let nextState = this.currentState;
+
+// handle condition for first move -- you can start anywhere
+if (!knight) {
+  knight = clicked;
+// can't move to any visited space
+} else if (nextState[clicked.x][clicked.y] !== 'visited') {
+  const {x, y} = knight;
+  const allowedMoves = [
+    // above
+    { x: x - 1, y: y - 2},
+    { x: x + 1, y: y - 2},
+
+    // left
+    { x: x - 2, y: y - 1},
+    { x: x - 2, y: y + 1},
+
+    // right
+    { x: x + 2, y: y - 1},
+    { x: x + 2, y: y + 1},
+
+    // below
+    { x: x - 1, y: y + 2},
+    { x: x + 1, y: y + 2},
+  ];
+
+  // check if clicked.x/clicked.y match any of the allowed moves
+  // if so, the spot the user clicked is valid!
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some
+  let valid = allowedMoves.some(({x, y}) =&gt; x === clicked.x &amp;&amp; y === clicked.y);
+
+  if (valid) {
+    // mark the old spot as "visited"
+    nextState[knight.x][knight.y] = 'visited';
+
+    // move the knight to the new spot
+    knight = clicked;
+  } else {
+    console.log(`(${clicked.x}, ${clicked.y}) is an invalid move!`);
+  }
+} else {
+  console.log(`(${clicked.x}, ${clicked.y}) was already visited!`);
+}
+
+// draw the knight on the grid
+nextState[knight.x][knight.y] = 'knight';
+
+Grid.update(nextState);
+</code></pre>
+
+<p>The core functionality and logic of the game are now complete. The last feature we’ll add is a function to check if the player has “won,” by visiting all 64 squares on the board. At the end of the game, there will be no more moves left, because each square in our grid will have a value of <code>visited</code>, except for the last square which will have the knight. So to check for a win condition, we iterate over the game board and check that only those two values are present.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">
+const wonGame = () =&gt; {
+  const state = Grid.currentState;
+
+  for (let y = 0; y &lt; Grid.rows; y += 1) {
+    for (let x = 0; x &lt; Grid.columns; x += 1) {
+      if (state[x][y] !== 'visited' &amp;&amp; state[x][y] !== 'knight') {
+        return false;
+      }
+    }
+  }
+
+  // if we've made it here, then the entire grid has been visited,
+  // and the knight is in the last square
+  return true;
+}
+</code></pre>
+
+<p>This method can then be used at the very end of the <code>onClick</code> method, to display a message to the player if they manage to finish the game.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">
+// at the end of `onClick`
+
+Grid.update(nextState);
+
+if (wonGame()) {
+  alert('Congratulations!');
+}
+</code></pre>
+
+<p>That’s it! If you get stuck, <a href="">download a copy of the completed project</a> and compare it with what you’ve typed in.</p>
+
+<h3 id="exercises-left-for-the-reader">Exercises left for the reader</h3>
+
+<ol>
+  <li>Keep score: increment a point counter whenever the player makes a successful move</li>
+  <li>Reset: add a button to the page that resets the game, rather than making the player reload the page</li>
+  <li>Beginner mode: update the game board to highlight allowed next moves</li>
+</ol>
+
+      </section>
+
+    </div>  <!-- /.container -->
+
+    <!-- syntax highlighting -->
+    <script src="scripts/prism.js"></script>
+
+    <section id="about">
+      <p>
+        Ganbaru Games publishes games written by
+        <a href="https://nathandemick.com" title="Nathan Demick">Nathan Demick</a>.
+        Each game is playable mobile and desktop web browsers.
+        In fact, you can load a game, then "save to homescreen" on your
+        smartphone to have convenient access at any time!
+      </p>
+
+      <p>
+        <a style="float: right;" href="https://ko-fi.com/I2I7LV8YU" target="_blank">
+          <img height="36" style="border:0px;height:36px;" src="https://storage.ko-fi.com/cdn/kofi5.png?v=3" alt="Buy Me a Coffee at ko-fi.com">
+        </a>
+      </p>
+
+      <ul>
+        <li><a href="https://github.com/endemic/gridjs">Game making resources</a></li>
+        <li><a href="mailto:support@ganbarugames.com">Contact</a></li>
+        <li><a href="/privacy.html" title="Privacy Policy">Privacy Policy</a></li>
+      </ul>
+    </section>
+
+    <footer>
+      &copy; 2024 Ganbaru Games, LLC.
+    </footer>
+  </body>
+</html>

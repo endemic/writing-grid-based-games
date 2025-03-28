@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Game | Ganbaru Games</title>
+    
+    <meta name="description" content="Make a "Snake" game with GridJS">
+    <meta name="author" content="Nathan Demick">
+
+    <meta property="og:title" content="Game" />
+    <meta property="og:description" content="Make a "Snake" game with GridJS" />
+
+    <link rel="stylesheet" href="https://ganbaru.games/assets/stylesheets/main.css">
+    <link rel="shortcut icon" href="https://ganbaru.games/assets/images/henohenomoheji.png" type="image/png">
+
+    <link rel="stylesheet" href="stylesheets/prism.css">
+    <link rel="stylesheet" href="stylesheets/extra.css">
+  </head>
+  <body>
+    <h1><span class="henohenomoheji"></span>Ganbaru Games</h1>
+
+    <div class="container">
+      <h2>Game</h2>
+
+      <section class="text">
+        <p>https://en.wikipedia.org/wiki/Snake_(video_game_genre)</p>
+
+<p>One classic genre for casual games is named, appropriately, “Snake.” The basic idea of these sorts of games is that you control a snake, which gets ever longer. The challenge being that in order to score points, you move the snake across “apples” (or mice, or whatever) that increase the snake’s length. The snake continually moves in whatever direction it is facing, and if the head touches any part of the body, you lose.</p>
+
+<p>This sort of game is perfect for a grid; each “segment” of the snake’s body can be represented by a grid cell. In this version, the “snake” object consists of an array of points, represented by Cartesian coordinates. The snake can then be moved one square at a time by inserting a new set of coordinates as the first element of the array, and popping the last set of coordinates off the end of the array.</p>
+
+<p>The initial game setup is fairly basic.</p>
+
+<p>```javascript
+class Snake extends Grid {
+  constructor() {
+    const rows = 50;
+    const columns = 50;
+    super(rows, columns);</p>
+
+<pre><code>let nextState = this.currentState;
+
+// use the built-in `fill` method for initial empty background
+nextState = this.fill(nextState, 'empty');
+
+// Set up the "snake" object -- each {x, y} object is a segment of the snake
+this.snake = [
+    { x: 25, y: 25 }, // this is the "head" of the snake
+    { x: 24, y: 25 },
+    { x: 23, y: 25 },
+    { x: 22, y: 25 }
+];
+
+// Update the correct grid cells with the snake's body
+for (const {x, y} of this.snake) {
+  nextState[x][y] = 'snake';
+}
+
+// do initial update, which draws the background &amp; snake
+this.updateState(nextState);   } } ```
+</code></pre>
+
+<p>Add the following style rules to <code>main.css</code>, in order to represent the game background and the snake.</p>
+
+<p><code>css
+.empty { background: black; }
+.snake { background: limegreen; }
+</code></p>
+
+<p>Load <code>index.html</code> in a browser and you should see a 50x50 grid, with a green “snake” in the center. Jawesome!</p>
+
+<p>Now that the basics are in place, next step is to get the snake a-movin’. Since the snake is supposed to continually move forward (even without player input), we’ll need some sort of function that is called every few milliseconds that runs code to update the snake’s position. One way to regularly have a function called in JavaScript is using the global <code>setInterval(callback, milliseconds)</code> method, which runs <code>callback</code> every <code>milliseconds</code> ms. <code>setInterval</code> isn’t precise; the duration of time between callbacks running can vary based on various circumstances, but it’s fine for our purposes.</p>
+
+<p>In the class <code>constructor</code> method, add this line which runs <code>update</code> every 30ms:</p>
+
+<p><code>javascript
+  window.setInterval(() =&gt; this.update(), 30);
+</code></p>
+
+<p>Now that we’ve referenced the <code>update</code> function, we actually have to write it.</p>
+
+<p>```javascript
+update() {
+  let nextState = this.currentState;</p>
+
+<p>// clear the current snake position
+  for (const {x, y} of this.snake) {
+    nextState[x][y] = ‘empty’;
+  }</p>
+
+<p>// determine the next place the snake will move to
+  let currentSnakeHead = this.snake[0];
+  let nextSnakeHead = {
+    x: currentSnakeHead.x,
+    y: currentSnakeHead.y
+  };</p>
+
+<p>// for now, it will always move to the right
+  nextSnakeHead.x += 1;</p>
+
+<p>// this check will “wrap” the snake around the screen
+  if (nextSnakeHead.x &gt;= this.columns) {
+    nextSnakeHead.x = 0;
+  }</p>
+
+<p>// <code>unshift</code> pushes an element on to the front of an array,
+  // making it the new [0] element
+  this.snake.unshift(nextSnakeHead);</p>
+
+<p>// pop off the last tail segment
+  this.snake.pop();</p>
+
+<p>// re-draw the snake
+  for (const {x, y} of this.snake) {
+    nextState[x][y] = ‘snake’;
+  }</p>
+
+<p>this.updateState(nextState);
+}
+```</p>
+
+<p>Save the game source file and reload the page; you should see the snake continually moving from left to right.</p>
+
+<p>Nice! We’ve gone from static to dynamic — and the next step is to add interactivity. For simplicity’s sake, we’ll focus on using a keyboard for user input; touch controls will be left as an exercise for the reader. Similarly to how we called a global JavaScript method (<code>window.setInterval</code>) to regularly update the game display, we’ll call another global method to detect key presses. In the <code>constructor</code> function, write this line to add an “event listener” to the page:</p>
+
+<p><code>javascript
+window.addEventListener('keydown', event =&gt; this.onKeyDown(event));
+</code></p>
+
+<p>As you might expect, this line will make our game page detect any keyboard input, and send the details of that event to the <code>onKeyDown</code> method. Each time a key is pressed, an <code>event</code> object is generated and passed to our function that handles input; we can inspect that object to determine which key was pressed, and then execute the appropriate game logic. The next step is to write the <code>onKeyDown</code> method.</p>
+
+<p>```javascript
+onKeyDown(event) {
+  // stop the page from doing anything else with this input
+  event.preventDefault();</p>
+
+<p>console.log(<code>You pressed the ${event.key} key!</code>);
+}
+```</p>
+
+<p>Reload the page and mash the keyboard. You should see a cacaphony of log messages show up in the developer console. This lets you know that the keyboard input handler actually works. Now we need to add logic that actually changes the direction the snek is moving. We didn’t initially build in that capability, so we have to go back in and update the object that represents the snake. Instead of being just an array of coordinates, the snake will also store data about the next point it will move to. Rewrite the declaration of the <code>this.snake</code> instance variable that is defined in the <code>constructor</code> function:</p>
+
+<p>```javascript
+// Get rid of this
+// this.snake = [
+//     { x: 25, y: 25 },
+//     { x: 24, y: 25 },
+//     { x: 23, y: 25 },
+//     { x: 22, y: 25 }
+// ];</p>
+
+<p>// Add this
+this.snake = {
+  position: [
+    { x: 25, y: 25 }, // this is the “head” of the snake
+    { x: 24, y: 25 },
+    { x: 23, y: 25 },
+    { x: 22, y: 25 }
+  ],
+  next: { x: 1, y: 0 }
+}
+```</p>
+
+<p>Now the snake has both a <code>position</code> property, which stores its segment locations, as well as a <code>next</code> property, which shows the direction it is moving in. As a default, we’re having it move to the right (x + 1), just as it was doing previously. The code that draws the snake also has to change slightly, by referencing the <code>position</code> array:</p>
+
+<p><code>javascript
+// draw the snaaake
+for (const {x, y} of this.snake.position) {
+  nextState[x][y] = 'snake';
+}
+</code></p>
+
+<p>The <code>update</code> function will also need to be tweaked to reference the updated <code>this.snake</code> structure:</p>
+
+<p>```javascript
+update() {
+  let nextState = this.currentState;</p>
+
+<p>// clear the current snake position
+  for (const {x, y} of this.snake.position) {
+    nextState[x][y] = ‘empty’;
+  }</p>
+
+<p>// determine the next place the snake will move to
+  let currentSnakeHead = this.snake.position[0];
+  let nextSnakeHead = {
+    x: currentSnakeHead.x + this.snake.next.x,
+    y: currentSnakeHead.y + this.snake.next.y
+  };</p>
+
+<p>// this check will “wrap” the snake around the screen
+  if (nextSnakeHead.x &gt;= this.columns) {
+    nextSnakeHead.x = 0;
+  } else if (nextSnakeHead.x &lt; 0) {
+    nextSnakeHead.x = this.columns - 1;
+  }</p>
+
+<p>// push new snake head on to the body
+  this.snake.unshift(nextSnakeHead);</p>
+
+<p>// pop off the last tail segment
+  this.snake.pop();</p>
+
+<p>// re-draw the snake
+  for (const {x, y} of this.snake.position) {
+    nextState[x][y] = ‘snake’;
+  }</p>
+
+<p>this.updateState(nextState);
+}
+```</p>
+
+      </section>
+
+    </div>  <!-- /.container -->
+
+    <!-- syntax highlighting -->
+    <script src="scripts/prism.js"></script>
+
+    <section id="about">
+      <p>
+        Ganbaru Games publishes games written by
+        <a href="https://nathandemick.com" title="Nathan Demick">Nathan Demick</a>.
+        Each game is playable mobile and desktop web browsers.
+        In fact, you can load a game, then "save to homescreen" on your
+        smartphone to have convenient access at any time!
+      </p>
+
+      <p>
+        <a style="float: right;" href="https://ko-fi.com/I2I7LV8YU" target="_blank">
+          <img height="36" style="border:0px;height:36px;" src="https://storage.ko-fi.com/cdn/kofi5.png?v=3" alt="Buy Me a Coffee at ko-fi.com">
+        </a>
+      </p>
+
+      <ul>
+        <li><a href="https://github.com/endemic/gridjs">Game making resources</a></li>
+        <li><a href="mailto:support@ganbarugames.com">Contact</a></li>
+        <li><a href="/privacy.html" title="Privacy Policy">Privacy Policy</a></li>
+      </ul>
+    </section>
+
+    <footer>
+      &copy; 2024 Ganbaru Games, LLC.
+    </footer>
+  </body>
+</html>
