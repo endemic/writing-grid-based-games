@@ -19,7 +19,7 @@ content: |
   -   console.log(`pressed ${key}`);
   - });
 
-  + let nextState = Grid.currentState;
+  + let nextState = Grid.state;
   +
   + // simple helper function to determine if a number is even or odd
   + const isEven = number => number % 2 === 0;
@@ -31,7 +31,7 @@ content: |
   +   }
   + }
   +
-  + Grid.update(nextState);
+  + Grid.state = nextState;
 
   Grid.onPointDown(({ x, y }) => {
     //...</code></pre>
@@ -66,29 +66,29 @@ content: |
     <figcaption>the chess board!</figcaption>
   </figure>
 
-  We now need to handle user interactions. GridJS has a helper for this called `onPointDown` &mdash; this function will run a callback whenever the player clicks or touches the touchscreen. The code included in the `game.js` file already has an example of how this helper can be used; we're going to delete some of that code and write our own. For this game, we'll let the player choose their own starting point, which means the first click will place the knight piece. We can keep track of the knight's position by using a local variable named, appropriately enough, `knight`.
+  We now need to handle user interactions. GridJS has a helper for this called `onPointDown` &mdash; this function will run some code whenever the player clicks or touches the touchscreen. The `game.js` file already has an example of how this helper can be used; we're going to delete some of that code and write our own. For this game, we'll let the player choose their own starting point, which means the first click will place the knight piece. We can keep track of the knight's position by using a local variable named, appropriately enough, `knight`.
 
   <pre><code class="language-diff-javascript diff-highlight">+ let knight;
   +
   Grid.onPointDown(({ x, y }) => {
     console.debug(`clicked grid cell (${x}, ${y})`);
 
-  -   /* replace this with your own code! */
-    const nextState = Grid.currentState;
+  - /* replace this with your own code! */
+    const nextState = Grid.state;
 
-  +   // save the knight's position
-  +   knight = {x, y};
+  + // save the knight's position
+  + knight = {x, y};
   +
-  +   // draw the knight on the grid
-  +   nextState[knight.x][knight.y] = 'knight';
+  + // draw the knight on the grid
+  + nextState[knight.x][knight.y] = 'knight';
   +
-  -   if (Grid.isEmpty(nextState[x][y])) {
-  -     nextState[x][y] = 'highlight';
-  -   } else {
-  -     nextState[x][y] = '';
-  -   }
+  - if (Grid.isEmpty(nextState[x][y])) {
+  -   nextState[x][y] = 'highlight';
+  - } else {
+  -   nextState[x][y] = '';
+  - }
   -
-    Grid.update(nextState);
+    Grid.state = nextState;
   });
   </code></pre>
 
@@ -104,7 +104,7 @@ content: |
   <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
     console.debug(`clicked grid cell (${x}, ${y})`);
 
-    const nextState = Grid.currentState;
+    const nextState = Grid.state;
 
   + // if the knight has already been placed on the grid...
   + if (knight) {
@@ -112,13 +112,13 @@ content: |
   +   nextState[knight.x][knight.y] = 'visited';
   + }
 
-    // save the knight's position
+    // save the knight's new position
     knight = {x, y};
 
-    // draw the knight on the grid
+    // re-draw the knight on the grid
     nextState[knight.x][knight.y] = 'knight';
 
-    Grid.update(nextState);
+    Grid.state = nextState;
   });
   </code></pre>
 
@@ -129,54 +129,24 @@ content: |
     <figcaption>moving a single knight piece on the chess board</figcaption>
   </figure>
 
-  But we still need to program in more game logic: the knight can't land on any "visited" spaces, and has to move like it does in the game of chess (two forward, one to the side). The first condition is simple to implement: check the value of the clicked cell to see if it is `visited` or not. If it is, then we just `return` early and don't execute the rest of the function.
+  But we still need to program in more game logic: the knight can't land on any "visited" spaces, and has to move like it does in the game of chess (two forward, one to the side). The way we'll add these rules is by checking the point where the user clicks: if it's in a list of allowed moves, then the knight can proceed. If not, then nothing happens. So, since we have the current **(x, y)** position of the knight, stored in the `knight` variable, we can generate a list of allowable spaces by adding or subtracting from the knight's location. For example, we can create an array of `{x, y}` objects that represent valid moves:
 
-  <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
-    console.debug(`clicked grid cell (${x}, ${y})`);
-
-    const nextState = Grid.currentState;
-
-  + if (nextState[x][y] === 'visited') {
-  +   console.log(`(${clicked.x}, ${clicked.y}) was already visited!`);
-  +   return;
-  + }
-
-    // if the knight has already been placed on the grid...
-    if (knight) {
-        // draw the current position as "visited"
-        nextState[knight.x][knight.y] = 'visited';
-    }
-
-    // set the new knight position
-    knight = {x, y};
-
-    // draw on the grid
-    nextState[knight.x][knight.y] = 'knight';
-
-    Grid.update(nextState);
-  });
-  </code></pre>
-
-  The movement rule shouldn't be too hard to add in either. Given the current **(x, y)** position of the knight, we can generate a list of allowable spaces by adding or subtracting from the knight's location. For example, we can create an array of `{x, y}` objects that represent valid moves:
-
-  <pre><code class="language-diff-javascript diff-highlight">const {x, y} = knight;
-
-  const allowedMoves = [
+  <pre><code class="language-diff-javascript diff-highlight">const allowedMoves = [
     // above
-    { x: x - 1, y: y - 2},
-    { x: x + 1, y: y - 2},
+    { x: knight.x - 1, y: knight.y - 2},
+    { x: knight.x + 1, y: knight.y - 2},
 
     // left
-    { x: x - 2, y: y - 1},
-    { x: x - 2, y: y + 1},
+    { x: knight.x - 2, y: knight.y - 1},
+    { x: knight.x - 2, y: knight.y + 1},
 
     // right
-    { x: x + 2, y: y - 1},
-    { x: x + 2, y: y + 1},
+    { x: knight.x + 2, y: knight.y - 1},
+    { x: knight.x + 2, y: knight.y + 1},
 
     // below
-    { x: x - 1, y: y + 2},
-    { x: x + 1, y: y + 2},
+    { x: knight.x - 1, y: knight.y + 2},
+    { x: knight.x + 1, y: knight.y + 2},
   ];
   </code></pre>
 
@@ -188,58 +158,102 @@ content: |
   [x][ ][ ][ ][x]
   [ ][x][ ][x][ ]</strong></pre>
 
-  So what we need to do is check if the `allowedMoves` array contains (x, y) values that are equal to where the player clicked.
+  So what we need to do is check if the `allowedMoves` array contains (x, y) values that are equal to where the player clicked. Since the knight's position changes after each turn, it makes sense to take the example `allowedMoves` array and put it inside a function. The function can take the `{x, y}` position of the knight as an argument, and return the new list of allowed moves after each turn. Add this new code _outside_ of the `onPointDown` function.
 
-  <pre><code class="language-diff-javascript diff-highlight">
-  // `onClick`
-  let nextState = this.currentState;
+  <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
+    // ...omitted for brevity
+  });
 
-  // handle condition for first move -- you can start anywhere
-  if (!knight) {
-    knight = clicked;
-  // can't move to any visited space
-  } else if (nextState[clicked.x][clicked.y] !== 'visited') {
-    const {x, y} = knight;
-    const allowedMoves = [
-      // above
-      { x: x - 1, y: y - 2},
-      { x: x + 1, y: y - 2},
+  + const getAllowedMoves = (knight) => {
+  +   const state = Grid.state;
+  +
+  +   return [
+  +     // above
+  +     { x: knight.x - 1, y: knight.y - 2},
+  +     { x: knight.x + 1, y: knight.y - 2},
+  +
+  +     // left
+  +     { x: knight.x - 2, y: knight.y - 1},
+  +     { x: knight.x - 2, y: knight.y + 1},
+  +
+  +     // right
+  +     { x: knight.x + 2, y: knight.y - 1},
+  +     { x: knight.x + 2, y: knight.y + 1},
+  +
+  +     // below
+  +     { x: knight.x - 1, y: knight.y + 2},
+  +     { x: knight.x + 1, y: knight.y + 2},
+  +   ];
+  + };
+  </code></pre>
 
-      // left
-      { x: x - 2, y: y - 1},
-      { x: x - 2, y: y + 1},
+  We can then use this new function in `onPointDown` to see if the knight is allowed to move:
 
-      // right
-      { x: x + 2, y: y - 1},
-      { x: x + 2, y: y + 1},
+  <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
+    console.debug(`clicked grid cell (${x}, ${y})`);
 
-      // below
-      { x: x - 1, y: y + 2},
-      { x: x + 1, y: y + 2},
-    ];
+    const nextState = Grid.state;
 
-    // check if clicked.x/clicked.y match any of the allowed moves
-    // if so, the spot the user clicked is valid!
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some
-    let valid = allowedMoves.some(({x, y}) => x === clicked.x && y === clicked.y);
+  - // if the knight has already been placed on the grid...
+  - if (knight) {
+  -   // draw the current position as "visited"
+  -   nextState[knight.x][knight.y] = 'visited';
+  - }
+  -
+  - // save the knight's new position
+  - knight = {x, y};
+  -
+  - // re-draw the knight on the grid
+  - nextState[knight.x][knight.y] = 'knight';
 
-    if (valid) {
-      // mark the old spot as "visited"
+  + let allowedMoves = getAllowedMoves(knight);
+  +
+  + // if the clicked {x, y} coords are in the list of allowed moves...
+  + if (allowedMoves.find(move => x === move.x && y === move.y)) {
+  +   // draw the current position as "visited"
+  +   nextState[knight.x][knight.y] = 'visited';
+  +
+  +   // set the new knight position
+  +   knight = {x, y};
+  +
+  +   // draw on the grid
+  +   nextState[knight.x][knight.y] = 'knight';
+  + }
+
+    Grid.state = nextState;
+  });
+  </code></pre>
+
+  Save and reload the page, then click around on the game board. Nothing happens. _What?_ If you open the browser console (**Tools &rarr; Browser Tools &rarr; Browser Console**), you'll see an error message pop up whenever you click: `Uncaught TypeError: knight is undefined`. The problem is that our previous code would _always_ set the knight's position, and now we're checking to see if a move is allowed based on the current position. Since `knight` is initially declared without a value (`undefined`), this means we need to add some special handling for the very first move of the game.
+
+  <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
+    console.debug(`clicked grid cell (${x}, ${y})`);
+
+    const nextState = Grid.state;
+
+  + // handle condition of first move
+  + if (!knight) {
+  +   knight = {x, y};
+  +
+  +   nextState[knight.x][knight.y] = 'knight';
+  + }
+
+    let allowedMoves = getAllowedMoves(knight);
+
+    // if the clicked {x, y} coords are in the list of allowed moves...
+    if (allowedMoves.find(move => x === move.x && y === move.y)) {
+      // draw the current position as "visited"
       nextState[knight.x][knight.y] = 'visited';
 
-      // move the knight to the new spot
-      knight = clicked;
-    } else {
-      console.log(`(${clicked.x}, ${clicked.y}) is an invalid move!`);
+      // set the new knight position
+      knight = {x, y};
+
+      // draw on the grid
+      nextState[knight.x][knight.y] = 'knight';
     }
-  } else {
-    console.log(`(${clicked.x}, ${clicked.y}) was already visited!`);
-  }
 
-  // draw the knight on the grid
-  nextState[knight.x][knight.y] = 'knight';
-
-  Grid.update(nextState);
+    Grid.state = nextState;
+  });
   </code></pre>
 
   The core functionality and logic of the game are now complete. The last feature we'll add is a function to check if the player has "won," by visiting all 64 squares on the board. At the end of the game, there will be no more moves left, because each square in our grid will have a value of `visited`, except for the last square which will have the knight. So to check for a win condition, we iterate over the game board and check that only those two values are present.
