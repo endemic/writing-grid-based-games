@@ -1,0 +1,3 @@
+#!/bin/bash
+docker build ./script --tag processor
+docker run --rm --volume $(pwd):/app processor

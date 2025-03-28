@@ -1,0 +1,3 @@
+#!/bin/bash
+
+rsync -av --safe-links --exclude 'script' --exclude '.git*' -e ssh ./dist/* ganbaru.games:/var/www/ganbaru.games/html/writing-grid-based-games
