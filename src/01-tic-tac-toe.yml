@@ -24,7 +24,7 @@ content: |
   -   console.debug(`clicked grid cell (${x}, ${y})`);
 
   -   /* replace this with your own code! */
-    const nextState = Grid.currentState;
+    const nextState = Grid.state;
 
   +   // do nothing if a player clicks on a square that's already filled
   +   if (!Grid.isEmpty(nextState[x][y])) {
@@ -43,7 +43,7 @@ content: |
   -     nextState[x][y] = player;
   -   }
 
-    Grid.update(nextState);
+    Grid.state = nextState;
   });</code></pre>
 
   If you save the `game.js` file and load `index.html` in a browser (<strong>File &rarr; Open File &rarr; index.html</strong>), you should see a 3x3 grid in the center of the page. However, clicking squares inside doesn't seem to do anything. That's because GridJS uses CSS classes to apply styling to each square. The page looks for a class style of `.x` inside of `main.css`, but it's not there. Let's add it now. Make your own graphic files to represent an _X_ and _O_, or else download some samples [here](assets/tic-tac-toe/images.zip). Then add the following at the bottom of `main.css`:
@@ -61,7 +61,7 @@ content: |
 
   These background rules specify the image file that should be used for the background, and that the image should be placed in the center of the element, and take up 100% of the available background space. Save and reload, then click the grid &mdash; you should start seeing _X_s appear. However, it't not actually a game of tic-tac-toe yet, since the second player needs to be able to add marks to the board. We can make this happen by toggling the value of the `player` variable between `x` and `o`. After the call to `Grid.update(nextState)`, add the following condition:
 
-  <pre><code class="language-diff-javascript diff-highlight">Grid.update(nextState);
+  <pre><code class="language-diff-javascript diff-highlight">Grid.state = nextState;
 
   + // switch players
   + if (player === 'x') {
@@ -81,7 +81,7 @@ content: |
 
   In total, there are eight ways to win: fill in a column (3), a row (3), or one of the diagonals (2). We can make a list of each of these valid win conditions, and then loop through the list, checking the value of each square in the grid.
 
-  <pre><code class="language-diff-javascript diff-highlight">Grid.update(nextState);
+  <pre><code class="language-diff-javascript diff-highlight">Grid.state = nextState;
 
   + const winPositions = [
   +   [{x: 0, y: 0}, {x: 1, y: 0}, {x: 2, y: 0}], // row 1
@@ -173,13 +173,13 @@ content: |
   +   return;
   + }
 
-    const nextState = Grid.currentState;</code></pre>
+    const nextState = Grid.state;</code></pre>
 
   And that's it! You've created a version of tic-tac-toe that's playable via a web browser. If the game doesn't work as you expect, you can download the [completed project source](assets/tic-tac-toe/example.zip) and compare with what you've written. This sets the stage for making more complicated games in the future.
 
   ### Postscript
 
-  You may notice that when an `alert` window pops up after clicking a square on the grid, you don't actually see the square update with an _X_ or _O_ until _after_ you click "OK." This is because `alert` windows stop any other code from running until it is dismissed. A dumb hack you can use to get around this is delay the `alert` until after existing code has been run, by using `setTimeout`:
+  You may notice that when an `alert` window pops up after clicking a square on the grid, you don't actually see the square update with an _X_ or _O_ until _after_ you click "OK." This is because `alert` windows stop any other code from running until it is dismissed. A dumb hack you can use to get around this is delay the `alert` until after existing code has been run, by using [setTimeout](https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout):
 
   <pre><code class="language-javascript">const delayedAlert = message => {
     setTimeout(() => {

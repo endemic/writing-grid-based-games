@@ -2,9 +2,7 @@ title: Game &#35;3&#58; Knight's Tour
 author: Nathan Demick
 description: Make a "Knight's Tour" game with GridJS
 content: |
-  https://en.wikipedia.org/wiki/Knight%27s_tour
-
-  I learned about Knight's Tour from [Steve Wozniak's autobiograhy](https://en.wikipedia.org/wiki/IWoz). He made a hardware version of the game when he was still a student, which I found pretty amazing. The basic gist is that a player tries to move a single chess knight to each square on an 8x8 chess board, but you can only land on each square once. The challenge comes from the wonky movement rules of the knight, which means you can get stuck pretty easily. Well, you had me at "8x8 chess board" &mdash; that's a grid! We can easily make a web version of this game by using a 2D array to keep track of the game's data.
+  I learned about [Knight's Tour](https://en.wikipedia.org/wiki/Knight%27s_tour) from [Steve Wozniak's autobiograhy](https://en.wikipedia.org/wiki/IWoz). He made a hardware version of the game when he was still a student, which I found pretty amazing. The basic gist is that a player tries to move a single chess knight to each square on an 8x8 chess board, but you can only land on each square once. The challenge comes from the wonky movement rules of the knight, which means you can get stuck pretty easily. Well, you had me at "8x8 chess board" &mdash; that's a grid! We can easily make a web version of this game by using a 2D array to keep track of the game's data.
 
   [Download grid.js](https://github.com/endemic/gridjs/releases/tag/v1.0.1), then edit `game.js` to create that 8x8 grid. The one bit of extra logic we'll run here is to fill the grid with alternating black and white tiles, in order to make it look like a chess board. Add the lines with a `+` in front, and remove lines prefixed by a `-`:
 
