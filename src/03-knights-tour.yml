@@ -165,8 +165,6 @@ content: |
   });
 
   + const getAllowedMoves = (knight) => {
-  +   const state = Grid.state;
-  +
   +   return [
   +     // above
   +     { x: knight.x - 1, y: knight.y - 2},
@@ -256,42 +254,76 @@ content: |
   });
   </code></pre>
 
-  The core functionality and logic of the game are now complete. The last feature we'll add is a function to check if the player has "won," by visiting all 64 squares on the board. At the end of the game, there will be no more moves left, because each square in our grid will have a value of `visited`, except for the last square which will have the knight. So to check for a win condition, we iterate over the game board and check that only those two values are present.
+  At this point you should be able to place the knight anywhere on the board on the first turn, then on subsequent turns the knight has to follow the traditional movement rules of the chess piece.
 
-  <pre><code class="language-diff-javascript diff-highlight">
-  const wonGame = () => {
-    const state = Grid.currentState;
+  <figure>
+    <img src="assets/knights-tour/example_4.png" alt="the knight has to follow chess movement rules">
+    <figcaption>the knight has to follow chess movement rules</figcaption>
+  </figure>
 
-    for (let y = 0; y < Grid.rows; y += 1) {
-      for (let x = 0; x < Grid.columns; x += 1) {
-        if (state[x][y] !== 'visited' && state[x][y] !== 'knight') {
-          return false;
-        }
-      }
-    }
+  There are a few more features it would be good to add. If you've been observant, you'll notice that the knight can still move to previously visited spaces. This is actually pretty simple to implement, if we modify the `getAllowedMoves` function.
 
-    // if we've made it here, then the entire grid has been visited,
-    // and the knight is in the last square
-    return true;
-  }
+  <pre><code class="language-diff-javascript diff-highlight">const getAllowedMoves = (knight) => {
+  + const state = Grid.state;
+
+    return [
+      // above
+      { x: knight.x - 1, y: knight.y - 2},
+      { x: knight.x + 1, y: knight.y - 2},
+
+      // left
+      { x: knight.x - 2, y: knight.y - 1},
+      { x: knight.x - 2, y: knight.y + 1},
+
+      // right
+      { x: knight.x + 2, y: knight.y - 1},
+      { x: knight.x + 2, y: knight.y + 1},
+
+      // below
+      { x: knight.x - 1, y: knight.y + 2},
+      { x: knight.x + 1, y: knight.y + 2},
+  + ].filter(point => state[point.x][point.y] !== 'visited'); // can't move to a visited space
+  };
   </code></pre>
 
-  This method can then be used at the very end of the `onClick` method, to display a message to the player if they manage to finish the game.
+  What we're doing here is getting the current state of the game board, then using a [filter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter) function to remove any spaces that have already been visited.
 
-  <pre><code class="language-diff-javascript diff-highlight">
-  // at the end of `onClick`
+  The core logic of the game is now complete. The last feature we'll add is a function to check if the player has "won," by visiting all 64 squares on the board. At the end of the game, there will be no more moves left, because each square in our grid will have a value of `visited` (except for the last square which will have the knight). So to check for a win condition, we loop over the game board and check that only those two values are present.
 
-  Grid.update(nextState);
-
-  if (wonGame()) {
-    alert('Congratulations!');
-  }
+  <pre><code class="language-diff-javascript diff-highlight">+ const hasWonGame = () => {
+  +   const state = Grid.state;
+  +
+  +   for (let y = 0; y < Grid.rows; y += 1) {
+  +     for (let x = 0; x < Grid.columns; x += 1) {
+  +       if (state[x][y] !== 'visited' && state[x][y] !== 'knight') {
+  +         return false;
+  +       }
+  +     }
+  +   }
+  +
+  +   // if we've made it here, then the entire grid has been visited
+  +   return true;
+  + }
   </code></pre>
 
-  That's it! If you get stuck, [download a copy of the completed project]() and compare it with what you've typed in.
+  This method can then be used at the very end of the `onPointDown` method, to display a message to the player if they manage to traverse the entire board.
+
+  <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
+    // ...omitted for brevity
+
+    Grid.state = nextState;
+
+  + if (hasWonGame()) {
+  +   alert('Congratulations!');
+  + }
+  };
+  </code></pre>
+
+  And that's more or less it! If your version isn't working as expected, [download a copy of the completed project]() and compare it with what you've typed in.
 
   ### Exercises left for the reader
 
   1. Keep score: increment a point counter whenever the player makes a successful move
-  2. Reset: add a button to the page that resets the game, rather than making the player reload the page
-  3. Beginner mode: update the game board to highlight allowed next moves
+  2. You lose: display a message when the player has no moves available
+  3. Reset: add a button (or listen for a key press) that resets the game, rather than making the player reload the page
+  4. Beginner mode: update the game board to highlight allowed next moves
