@@ -6,7 +6,7 @@ content: |
 
   This sort of game is a perfect candidate for a grid, and is an especially good one to start off with. The puzzle board can be represented as a 4x4 grid, with each cell containing a value from 1 &mdash; 16 (16 being the "empty" space). The grid can be initialized randomly, then play occurs by clicking or tapping a tile that is next to the empty space. The tile then moves into the empty spot; the game continues until all the tiles are sorted from low to high.
 
-  Setup is simple &mdash; we have a list of strings that represent each tile, and randomly insert them into the 4x4 "state" array. Download the [grid.js project template](https://github.com/endemic/gridjs/releases) and make these changes at the start of the `game.js` file:
+  Setup is simple &mdash; we have a list of strings that represent each tile, and randomly insert them into the 4x4 "state" array. Download the [grid.js project template](https://github.com/endemic/gridjs/releases/latest) and make these changes at the start of the `game.js` file:
 
   <pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
   - const columns = 10;
@@ -18,7 +18,7 @@ content: |
   + let tiles = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'empty'];
   + 
   + // (randomly) initialize the grid with all of the tile values
-  + let nextState = Grid.currentState;
+  + let nextState = Grid.state;
 
   + for (let y = 0; y < Grid.rows; y += 1) {
   +   for (let x = 0; x < Grid.columns; x += 1) {
@@ -32,7 +32,7 @@ content: |
   + }
   + 
   + // update the game state
-  + Grid.update(nextState);
+  + Grid.state = nextState;
 
   Grid.onKeyDown(({ key }) => {</code></pre>
 
@@ -78,7 +78,7 @@ content: |
     console.debug(`clicked grid cell (${x}, ${y})`);
 
   - /* replace this with your own code! */
-  - const nextState = Grid.currentState;
+  - const nextState = Grid.state;
   - 
   - if (Grid.isEmpty(nextState[x][y])) {
   -   nextState[x][y] = 'highlight';
@@ -86,7 +86,7 @@ content: |
   -   nextState[x][y] = '';
   - }
   - 
-  - Grid.update(nextState);
+  - Grid.state = nextState;
   });
   </code></pre>
 
@@ -103,20 +103,20 @@ content: |
   <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
     console.debug(`clicked grid cell (${x}, ${y})`);
 
-  + const state = Grid.currentState;
+  + const nextState = Grid.state;
   + const neighbors = Grid.getNeighbors({ x, y });
   + 
   + // check each neighboring cell
   + for (let i = 0; i < neighbors.length; i += 1) {
   +   const neighbor = neighbors[i];
   + 
-  +   if (state[neighbor.x][neighbor.y] === 'empty') {
+  +   if (nextState[neighbor.x][neighbor.y] === 'empty') {
   +     // if a neighboring cell is empty, swap it with the one that was clicked
-  +     state[neighbor.x][neighbor.y] = state[x][y];
-  +     state[x][y] = 'empty';
+  +     nextState[neighbor.x][neighbor.y] = nextState[x][y];
+  +     nextState[x][y] = 'empty';
   + 
   +     // show the change
-  +     Grid.update(state);
+  +     Grid.state = nextState;
   + 
   +     // we don't need to check any of the other neighbors
   +     // once we've found an empty cell, so can break out of the loop
@@ -129,7 +129,7 @@ content: |
   Save the `game.js` file and reload the page. You should now be able to click numbers next to the empty cell, and watch them move around. This is all the functionality that is required to successfully solve the puzzle! However, it would be nice to provide the player some sort of confirmation that they finished the game. To that end, we can write up a function that checks whether or not the contents of each grid cell is sorted. A quick way to do this is to make an array of strings with the tile values (similar to the one we used to initialize the game board), then compare the contents of each grid cell with the corresponding value of an incrementing index. For example, the cell at (0, 0) should be `one`, the cell at (1, 0) should be `two`, etc. Add the following function anywhere in `game.js`:
 
   <pre><code class="language-diff-javascript diff-highlight">+ const hasWonGame = () => {
-  +   const state = Grid.currentState;
+  +   const state = Grid.state;
   +   const tiles = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'empty'];
   +
   +   // iterate through the rows/columns and expect the value of each cell to match

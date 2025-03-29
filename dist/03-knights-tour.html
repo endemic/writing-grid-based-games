@@ -27,7 +27,7 @@
       <section class="text">
         <p>I learned about <a href="https://en.wikipedia.org/wiki/Knight%27s_tour">Knight’s Tour</a> from <a href="https://en.wikipedia.org/wiki/IWoz">Steve Wozniak’s autobiograhy</a>. He made a hardware version of the game when he was still a student, which I found pretty amazing. The basic gist is that a player tries to move a single chess knight to each square on an 8x8 chess board, but you can only land on each square once. The challenge comes from the wonky movement rules of the knight, which means you can get stuck pretty easily. Well, you had me at “8x8 chess board” — that’s a grid! We can easily make a web version of this game by using a 2D array to keep track of the game’s data.</p>
 
-<p><a href="https://github.com/endemic/gridjs/releases/tag/v1.0.1">Download grid.js</a>, then edit <code>game.js</code> to create that 8x8 grid. The one bit of extra logic we’ll run here is to fill the grid with alternating black and white tiles, in order to make it look like a chess board. Add the lines with a <code>+</code> in front, and remove lines prefixed by a <code>-</code>:</p>
+<p><a href="https://github.com/endemic/gridjs/releases/latest">Download grid.js</a>, then edit <code>game.js</code> to create that 8x8 grid. The one bit of extra logic we’ll run here is to fill the grid with alternating black and white tiles, in order to make it look like a chess board. Add the lines with a <code>+</code> in front, and remove lines prefixed by a <code>-</code>:</p>
 
 <pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
 - const columns = 10;
