@@ -2,4 +2,43 @@ title: Game &#35;4&#58; Lights Out
 author: Nathan Demick
 description: Make a "Lights Out" game with GridJS
 content: |
-  https://en.wikipedia.org/wiki/Lights_Out_(game)
+  [Lights Out](https://en.wikipedia.org/wiki/Lights_Out_(game)) was a game made by Tiger Electronics (known for their crappy LCD handhelds) back in 1995. The concept was that a grid of backlit buttons could be pressed by the player. The grid was initialized with randomly lit buttons, and the goal was to "turn off" all the lights. Pressing a lit button turns it off, but also causes the four adjacent buttons to turn on.
+
+  This sort of game is perfect to re-implement in gridjs. First, [download GridJS](https://github.com/endemic/gridjs/releases/latest), which includes an `index.html` file that automatically loads the necessary JavaScript and CSS files. Next, open the `game.js` file in a text editor; you'll see that there is some example code there already which initializes a 10x10 grid, and sets up a simple event handler to toggle grid cell background colors. The first thing we can do is change the grid size to a 5x5 board.
+
+  <pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
+  - const columns = 10;
+  + const rows = 5;
+  + const columns = 5;
+
+  Grid.init(rows, columns);</code></pre>
+
+  The first thing we need to do is randomly "light up" squares on the game board. After the call to `Grid.init()`, add the following:
+
+  <pre><code class="language-diff-javascript diff-highlight">
+  let nextState = Grid.state;
+
+  for (let x = 0; x < Grid.width; x += 1) {
+    for (let y = 0; y < Grid.height; y += 1) {
+      if (Math.random() > 0.5) {
+        nextState[x][y] = 'light';
+      }
+    }
+  }
+
+  Grid.state = nextState;
+  </code></pre>
+
+  This code loops through the game board, and will randomly give cells in the grid a value of `light`. `Math.random()` is not truly random, but for our purposes it doesn't really matter. It will return a value between 0 and 1. If you save the `game.js` file and load `index.html` in a browser (<strong>File &rarr; Open File &rarr; index.html</strong>), you should see the 5x5 grid in the center of the page. But you won't see the randomized pattern of lit squares. That's because GridJS uses CSS classes to apply styling to each square. The page looks for a class style of `.light` inside of `main.css`, but it's not there. Let's add it now. Make your own graphic file to represent a light, or else download an example [here](assets/lights-out/light.png). Then add the following at the bottom of `main.css`:
+
+  <pre><code class="language-diff-css diff-highlight">#grid {
+    /* ... */
+
+  -  .highlight {
+  -    background-color: blueviolet;
+  -  }
+
+  +  .light { background: url('light.png') center/100%; }
+  }</code></pre>
+
+  This background rule specifies the image file that should be used for the background, and that the image should be placed in the center of the element, and take up 100% of the available background space. You should now see lights randomly appear on the grid when you reload the page.

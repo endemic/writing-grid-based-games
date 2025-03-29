@@ -30,7 +30,7 @@ content: |
   +   if (!Grid.isEmpty(nextState[x][y])) {
   +     return;
   +   }
-  +   
+  +
   +   nextState[x][y] = player;
 
   -   if (Grid.isEmpty(nextState[x][y])) {
@@ -59,7 +59,7 @@ content: |
   +  .o { background: url('o.png') center/100%; }
   }</code></pre>
 
-  These background rules specify the image file that should be used for the background, and that the image should be placed in the center of the element, and take up 100% of the available background space. Save and reload, then click the grid &mdash; you should start seeing _X_s appear. However, it't not actually a game of tic-tac-toe yet, since the second player needs to be able to add marks to the board. We can make this happen by toggling the value of the `player` variable between `x` and `o`. After the call to `Grid.update(nextState)`, add the following condition:
+  These background rules specify the image file that should be used for the background, and that the image should be placed in the center of the element, and take up 100% of the available background space. Save and reload, then click the grid &mdash; you should start seeing _X_s appear. However, it't not actually a game of tic-tac-toe yet, since the second player needs to be able to add marks to the board. We can make this happen by toggling the value of the `player` variable between `x` and `o`. After the call to `Grid.state = nextState;`, add the following condition:
 
   <pre><code class="language-diff-javascript diff-highlight">Grid.state = nextState;
 
