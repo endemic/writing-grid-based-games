@@ -17,7 +17,7 @@ content: |
   -   console.log(`pressed ${key}`);
   - });
 
-  + let nextState = Grid.state;
+  + let newState = Grid.state;
   +
   + // simple helper function to determine if a number is even or odd
   + const isEven = number => number % 2 === 0;
@@ -25,11 +25,11 @@ content: |
   + // make the grid look like a chessboard, with alternating white/black tiles
   + for (let y = 0; y < rows; y += 1) {
   +   for (let x = 0; x < columns; x += 1) {
-  +     nextState[x][y] = isEven(x + y) ? 'white' : 'black';
+  +     newState[x][y] = isEven(x + y) ? 'white' : 'black';
   +   }
   + }
   +
-  + Grid.state = nextState;
+  + Grid.state = newState;
 
   Grid.onPointDown(({ x, y }) => {
     //...</code></pre>
@@ -72,21 +72,21 @@ content: |
     console.debug(`clicked grid cell (${x}, ${y})`);
 
   - /* replace this with your own code! */
-    const nextState = Grid.state;
+    const newState = Grid.state;
 
   + // save the knight's position
   + knight = {x, y};
   +
   + // draw the knight on the grid
-  + nextState[knight.x][knight.y] = 'knight';
+  + newState[knight.x][knight.y] = 'knight';
   +
-  - if (Grid.isEmpty(nextState[x][y])) {
-  -   nextState[x][y] = 'highlight';
+  - if (Grid.isEmpty(newState[x][y])) {
+  -   newState[x][y] = 'highlight';
   - } else {
-  -   nextState[x][y] = '';
+  -   newState[x][y] = '';
   - }
   -
-    Grid.state = nextState;
+    Grid.state = newState;
   });
   </code></pre>
 
@@ -102,21 +102,21 @@ content: |
   <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
     console.debug(`clicked grid cell (${x}, ${y})`);
 
-    const nextState = Grid.state;
+    const newState = Grid.state;
 
   + // if the knight has already been placed on the grid...
   + if (knight) {
   +   // draw the current position as "visited"
-  +   nextState[knight.x][knight.y] = 'visited';
+  +   newState[knight.x][knight.y] = 'visited';
   + }
 
     // save the knight's new position
     knight = {x, y};
 
     // re-draw the knight on the grid
-    nextState[knight.x][knight.y] = 'knight';
+    newState[knight.x][knight.y] = 'knight';
 
-    Grid.state = nextState;
+    Grid.state = newState;
   });
   </code></pre>
 
@@ -179,44 +179,44 @@ content: |
   +     // below
   +     { x: knight.x - 1, y: knight.y + 2},
   +     { x: knight.x + 1, y: knight.y + 2},
-  +   ];
+  +   ].filter(Grid.withinBounds);
   + };
   </code></pre>
 
-  We can then use this new function in `onPointDown` to see if the knight is allowed to move:
+  Note the use of the `Grid.withinBounds` helper function. What this does is ensure the (x, y) coordinates returned from this function are all within the boundaries of the grid. For example, if the knight is at (0, 0), some of the computed moves will be outside the grid, such as (-1, -2). Passing `Grid.withinBounds` to `filter` will discard those. We can then use this new function in `onPointDown` to see if the knight is allowed to move:
 
   <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
     console.debug(`clicked grid cell (${x}, ${y})`);
 
-    const nextState = Grid.state;
+    const newState = Grid.state;
 
   - // if the knight has already been placed on the grid...
   - if (knight) {
   -   // draw the current position as "visited"
-  -   nextState[knight.x][knight.y] = 'visited';
+  -   newState[knight.x][knight.y] = 'visited';
   - }
   -
   - // save the knight's new position
   - knight = {x, y};
   -
   - // re-draw the knight on the grid
-  - nextState[knight.x][knight.y] = 'knight';
+  - newState[knight.x][knight.y] = 'knight';
 
-  + let allowedMoves = getAllowedMoves(knight);
+  + const allowedMoves = getAllowedMoves(knight);
   +
   + // if the clicked {x, y} coords are in the list of allowed moves...
   + if (allowedMoves.find(move => x === move.x && y === move.y)) {
   +   // draw the current position as "visited"
-  +   nextState[knight.x][knight.y] = 'visited';
+  +   newState[knight.x][knight.y] = 'visited';
   +
   +   // set the new knight position
   +   knight = {x, y};
   +
   +   // draw on the grid
-  +   nextState[knight.x][knight.y] = 'knight';
+  +   newState[knight.x][knight.y] = 'knight';
   + }
 
-    Grid.state = nextState;
+    Grid.state = newState;
   });
   </code></pre>
 
@@ -225,30 +225,30 @@ content: |
   <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
     console.debug(`clicked grid cell (${x}, ${y})`);
 
-    const nextState = Grid.state;
+    const newState = Grid.state;
 
   + // handle condition of first move
   + if (!knight) {
   +   knight = {x, y};
   +
-  +   nextState[knight.x][knight.y] = 'knight';
+  +   newState[knight.x][knight.y] = 'knight';
   + }
 
-    let allowedMoves = getAllowedMoves(knight);
+    const allowedMoves = getAllowedMoves(knight);
 
     // if the clicked {x, y} coords are in the list of allowed moves...
     if (allowedMoves.find(move => x === move.x && y === move.y)) {
       // draw the current position as "visited"
-      nextState[knight.x][knight.y] = 'visited';
+      newState[knight.x][knight.y] = 'visited';
 
       // set the new knight position
       knight = {x, y};
 
       // draw on the grid
-      nextState[knight.x][knight.y] = 'knight';
+      newState[knight.x][knight.y] = 'knight';
     }
 
-    Grid.state = nextState;
+    Grid.state = newState;
   });
   </code></pre>
 
@@ -280,15 +280,19 @@ content: |
       // below
       { x: knight.x - 1, y: knight.y + 2},
       { x: knight.x + 1, y: knight.y + 2},
-  + ].filter(point => state[point.x][point.y] !== 'visited'); // can't move to a visited space
+  + ].filter(Grid.withinBounds).filter(point => state[point.x][point.y] !== 'visited'); // can't move to a visited space
   };
   </code></pre>
 
-  What we're doing here is getting the current state of the game board, then using a [filter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter) function to remove any spaces that have already been visited.
+  What we're doing here is getting the current state of the game board, then using the [filter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter) function again to remove any spaces that have already been visited.
 
   The core logic of the game is now complete. The last feature we'll add is a function to check if the player has "won," by visiting all 64 squares on the board. At the end of the game, there will be no more moves left, because each square in our grid will have a value of `visited` (except for the last square which will have the knight). So to check for a win condition, we loop over the game board and check that only those two values are present.
 
-  <pre><code class="language-diff-javascript diff-highlight">+ const hasWonGame = () => {
+  <pre><code class="language-diff-javascript diff-highlight">const getAllowedMoves = (knight) => {
+    // ...omitted for brevity
+  };
+  +
+  + const hasWonGame = () => {
   +   const state = Grid.state;
   +
   +   for (let y = 0; y < Grid.rows; y += 1) {
@@ -301,23 +305,28 @@ content: |
   +
   +   // if we've made it here, then the entire grid has been visited
   +   return true;
-  + }
+  + };
   </code></pre>
 
-  This method can then be used at the very end of the `onPointDown` method, to display a message to the player if they manage to traverse the entire board.
+  This method can then be used at the very end of the `onPointDown` method, to display a message to the player if they manage to traverse the entire board (using the `delayedAlert` function we created in the [first tutorial](01-tic-tac-toe.html#delayedAlert)).
 
   <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
     // ...omitted for brevity
 
-    Grid.state = nextState;
+    Grid.state = newState;
 
   + if (hasWonGame()) {
-  +   alert('Congratulations!');
+  +   delayedAlert('Congratulations!');
   + }
   };
   </code></pre>
 
-  And that's more or less it! If your version isn't working as expected, [download a copy of the completed project]() and compare it with what you've typed in.
+  <figure>
+    <img src="assets/knights-tour/example_5.png" alt="the knight has visited the entire board">
+    <figcaption>the knight has visited the entire board</figcaption>
+  </figure>
+
+  And that's more or less it! If your version isn't working as expected, [download a copy of the completed project](assets/knights-tour/example.zip) and compare it with what you've typed in.
 
   ### Exercises left for the reader
 

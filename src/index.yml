@@ -37,8 +37,9 @@ content: |
   ## Table of Contents
 
   1. [Tic-Tac-Toe](01-tic-tac-toe.html)
-  2. [Puzzle](02-puzzle.html)
+  2. [15 Puzzle](02-puzzle.html)
   3. [Knight's Tour](03-knights-tour.html)
-  4. Snake
-  5. Minesweeper
-  6. Sokoban
+  4. Lights Out
+  5. Snake
+  6. Minesweeper
+  7. Sokoban
