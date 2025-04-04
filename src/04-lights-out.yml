@@ -15,21 +15,22 @@ content: |
 
   The first thing we need to do is randomly "light up" squares on the game board. After the call to `Grid.init()`, add the following:
 
-  <pre><code class="language-diff-javascript diff-highlight">
-  let nextState = Grid.state;
-
-  for (let x = 0; x < Grid.width; x += 1) {
-    for (let y = 0; y < Grid.height; y += 1) {
-      if (Math.random() > 0.5) {
-        nextState[x][y] = 'light';
-      }
-    }
-  }
-
-  Grid.state = nextState;
+  <pre><code class="language-diff-javascript diff-highlight">Grid.init(rows, columns);
+  +
+  + const newState = Grid.state;
+  +
+  + for (let x = 0; x < Grid.rows; x += 1) {
+  +  for (let y = 0; y < Grid.columns; y += 1) {
+  +    if (Math.random() > 0.5) {
+  +      newState[x][y] = 'light';
+  +    }
+  +  }
+  + }
+  +
+  + Grid.state = newState;
   </code></pre>
 
-  This code loops through the game board, and will randomly give cells in the grid a value of `light`. `Math.random()` is not truly random, but for our purposes it doesn't really matter. It will return a value between 0 and 1. If you save the `game.js` file and load `index.html` in a browser (<strong>File &rarr; Open File &rarr; index.html</strong>), you should see the 5x5 grid in the center of the page. But you won't see the randomized pattern of lit squares. That's because GridJS uses CSS classes to apply styling to each square. The page looks for a class style of `.light` inside of `main.css`, but it's not there. Let's add it now. Make your own graphic file to represent a light, or else download an example [here](assets/lights-out/light.png). Then add the following at the bottom of `main.css`:
+  This code loops through the game board, and will randomly give cells in the grid a value of `light`. As some pedants will tell you, `Math.random()` is not truly random, but for our purposes it's good enough. It will return a value between 0 and 1. If you save the `game.js` file and load `index.html` in a browser (<strong>File &rarr; Open File &rarr; index.html</strong>), you should see the 5x5 grid in the center of the page. But you won't see the randomized pattern of lit squares. That's because GridJS uses CSS classes to apply styling to each square. The page looks for a class style of `.light` inside of `main.css`, but it's not there. Let's add it now. Make your own image to represent a light, or else download an example [here](assets/lights-out/light.png), and put it in the same folder as the rest of the GridJS files. Then add the following at the bottom of `main.css`:
 
   <pre><code class="language-diff-css diff-highlight">#grid {
     /* ... */
@@ -37,8 +38,114 @@ content: |
   -  .highlight {
   -    background-color: blueviolet;
   -  }
-
-  +  .light { background: url('light.png') center/100%; }
+  + .light {
+  +   background: url('light.png') center/100%;
+  + }
   }</code></pre>
 
-  This background rule specifies the image file that should be used for the background, and that the image should be placed in the center of the element, and take up 100% of the available background space. You should now see lights randomly appear on the grid when you reload the page.
+  This `background` shorthand CSS property ([MDN reference](https://developer.mozilla.org/en-US/docs/Web/CSS/background)) specifies the image file that should be used for the background, and that the image should be placed in the center of the element, and take up 100% of the available background space. Reload the page, and you should now see lights randomly appear on the grid.
+
+  <figure>
+    <img src="assets/lights-out/example_1.png" alt="randomly placed lights">
+    <figcaption>randomly placed lights</figcaption>
+  </figure>
+
+  Next we want to toggle lights when the user touches or clicks the grid. We can accomplish this by modifying the `onPointDown` callback function example that's already in the `game.js` source file. The rules of the game stipulate that touching a cell will toggle it on/off, as well as the four neighbors (above/below/left/right) surrounding it. Fortunately, GridJS has a handy `getNeighbors` helper function that will get those four adjacent cells. Once we have a reference to each neighbor, we can turn each one "on" or "off."
+
+  <pre><code class="language-diff-javascript diff-highlight">- Grid.onKeyDown(({ key }) => {
+  -   console.log(`pressed ${key}`);
+  - });
+
+  Grid.onPointDown(({ x, y }) => {
+  - console.debug(`clicked grid cell (${x}, ${y})`);
+
+  - /* replace this with your own code! */
+    const newState = Grid.state;
+
+  - if (Grid.isEmpty(newState[x][y])) {
+  -   newState[x][y] = 'highlight';
+  - } else {
+  -   newState[x][y] = '';
+  - }
+
+  + // helper function to turn a cell on/off
+  + const toggle = ({x, y}) => newState[x][y] = Grid.isEmpty(newState[x][y]) ? 'light' : '';
+  + 
+  + // update the clicked cell
+  + toggle({x, y});
+  +
+  + // update the neighboring cells
+  + const neighbors = Grid.getNeighbors({x, y});
+  + for (const neighbor of neighbors) {
+  +   toggle(neighbor);
+  + }
+
+    Grid.state = newState;
+  });
+  </code></pre>
+
+  Save and reload, and click around. You should see the expected behavior, where on each click up to five cells are turned off or on.
+
+  <figure>
+    <img src="assets/lights-out/example_2.gif" alt="toggling lights on and off">
+    <figcaption>toggling lights on and off</figcaption>
+  </figure>
+
+  The last feature we need to add is to check whether the game has been won. To do this we basically check to ensure that each cell in the grid is "off." We can write a new function called `hasWonGame` to handle this:
+
+  <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
+    // omitted for brevity...
+  });
+
+  + const hasWonGame = () => {
+  +   const state = Grid.state;
+  +
+  +   for (let x = 0; x < Grid.rows; x += 1) {
+  +     for (let y = 0; y < Grid.columns; y += 1) {
+  +       // if any cell is not empty (e.g. has a value of 'light'), instantly fail
+  +       if (!Grid.isEmpty(state[x][y])) {
+  +         return false;
+  +       }
+  +     }
+  +   }
+  +   
+  +   // we verified the whole board is empty!
+  +   return true;
+  + };
+  </code></pre>
+
+  Which can then be used like so:
+
+  <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
+    const newState = Grid.state;
+
+    // helper function to turn a cell on/off
+    const toggle = ({x, y}) => newState[x][y] = Grid.isEmpty(newState[x][y]) ? 'light' : '';
+    
+    // update the clicked cell
+    toggle({x, y});
+  
+    // update the neighboring cells
+    const neighbors = Grid.getNeighbors({x, y});
+    for (const neighbor in neighbors) {
+      toggle(neighbor);
+    }
+
+    Grid.state = newState;
+
+  + if (hasWonGame()) {
+  +   delayedAlert('You win!!');
+  + }
+  });
+  </code></pre>
+
+  <figure>
+    <img src="assets/lights-out/example_3.png" alt="winning the game">
+    <figcaption>winning the game</figcaption>
+  </figure>
+
+  That's it! You now have a functional version of "Lights Out."
+
+  ### Extra Credit
+
+  Reset the game board after a win, so that the player doesn't need to reload the page in order to re-initialize the game. One way to do this might be to move the code that randomly lights up the board (after the call to `Grid.init()`) into its own function, called `setup` or `reset` or something. That new function could then be called inside the `hasWonGame()` conditional block.
