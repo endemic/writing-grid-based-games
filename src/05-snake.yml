@@ -4,51 +4,61 @@ description: Make a "Snake" game with GridJS
 content: |
   https://en.wikipedia.org/wiki/Snake_(video_game_genre)
 
-  One classic genre for casual games is named, appropriately, "Snake." The basic idea of these sorts of games is that you control a snake, which gets ever longer. The challenge being that in order to score points, you move the snake across "apples" (or mice, or whatever) that increase the snake's length. The snake continually moves in whatever direction it is facing, and if the head touches any part of the body, you lose.
+  One classic genre for casual games is named, appropriately, "Snake." The basic idea of these sorts of games is that you control a snake, which gets ever longer. The challenge being that in order to score points, you move the snake across "apples" (is this some veiled Garden of Eden reference?) that increase the snake's length. The snake continually moves in whatever direction it is facing, and if the head touches any part of the body, you lose.
 
-  This sort of game is perfect for a grid; each "segment" of the snake's body can be represented by a grid cell. In this version, the "snake" object consists of an array of points, represented by Cartesian coordinates. The snake can then be moved one square at a time by inserting a new set of coordinates as the first element of the array, and popping the last set of coordinates off the end of the array.
+  This sort of game is perfect for a grid; each segment of the snake's body can be represented by a grid cell. In this version, the `snake` object consists of an array of points, represented by Cartesian coordinates. The snake can then be moved one square at a time by inserting a new set of coordinates as the first element of the array, and popping the last set of coordinates off the end of the array.
 
-  The initial game setup is fairly basic. 
+  The initial game setup is fairly basic. Download the [grid.js project template](https://github.com/endemic/gridjs/releases/latest) and make these changes at the start of the `game.js` file:
 
-  ```javascript
-  class Snake extends Grid {
-    constructor() {
-      const rows = 50;
-      const columns = 50;
-      super(rows, columns);
+  <pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
+  - const columns = 10;
+  + const rows = 50;
+  + const columns = 50;
 
-      let nextState = this.currentState;
+  Grid.init(rows, columns);
 
-      // use the built-in `fill` method for initial empty background
-      nextState = this.fill(nextState, 'empty');
+  + const snake = [
+  +   { x: 25, y: 25 }, // this is the "head" of the snake
+  +   { x: 24, y: 25 },
+  +   { x: 23, y: 25 },
+  +   { x: 22, y: 25 }
+  + ];
+  +
+  + const nextState = Grid.state;
+  +
+  + // set the correct grid cells with the snake's body
+  + for (const {x, y} of snake) {
+  +   nextState[x][y] = 'snake';
+  + }
+  +
+  + // update the game state, which draws the snake
+  + Grid.state = nextState;
 
-      // Set up the "snake" object -- each {x, y} object is a segment of the snake
-      this.snake = [
-          { x: 25, y: 25 }, // this is the "head" of the snake
-          { x: 24, y: 25 },
-          { x: 23, y: 25 },
-          { x: 22, y: 25 }
-      ];
-
-      // Update the correct grid cells with the snake's body
-      for (const {x, y} of this.snake) {
-        nextState[x][y] = 'snake';
-      }
-
-      // do initial update, which draws the background & snake
-      this.updateState(nextState);
-    }
-  }
-  ```
+  Grid.onKeyDown(({ key }) => {</code></pre>
 
   Add the following style rules to `main.css`, in order to represent the game background and the snake.
 
-  ```css
-  .empty { background: black; }
-  .snake { background: limegreen; }
-  ```
+  <pre><code class="language-diff-css diff-highlight">  div {
+        border: 1px solid black;
+        border-top: 0;
+        border-left: 0;
+  +     background-color: black;
+    }
+
+  - .highlight {
+  + .snake {
+  -   background-color: violet;
+  +   background-color: limegreen;
+    }
+  }
+  </code></pre>
 
   Load `index.html` in a browser and you should see a 50x50 grid, with a green "snake" in the center. Jawesome!
+
+  <figure>
+    <img src="assets/snake/example_1.png" alt="whoah, it's a snake!">
+    <figcaption>whoah, it's a snake!</figcaption>
+  </figure>
 
   Now that the basics are in place, next step is to get the snake a-movin'. Since the snake is supposed to continually move forward (even without player input), we'll need some sort of function that is called every few milliseconds that runs code to update the snake's position. One way to regularly have a function called in JavaScript is using the global `setInterval(callback, milliseconds)` method, which runs `callback` every `milliseconds` ms. `setInterval` isn't precise; the duration of time between callbacks running can vary based on various circumstances, but it's fine for our purposes.
 

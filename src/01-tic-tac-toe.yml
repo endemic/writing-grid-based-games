@@ -175,7 +175,7 @@ content: |
 
     const nextState = Grid.state;</code></pre>
 
-  And that's it! You've created a version of tic-tac-toe that's playable via a web browser. If the game doesn't work as you expect, you can download the [completed project source](assets/tic-tac-toe/example.zip) and compare with what you've written. This sets the stage for making more complicated games in the future.
+  And that's it! You've created a version of tic-tac-toe that's playable via a web browser. This sets the stage for making more complicated games in the future.
 
   ### Postscript
   <a name="delayedAlert"></a>
