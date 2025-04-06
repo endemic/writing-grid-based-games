@@ -20,24 +20,22 @@ content: |
     const rows = 10;
     const columns = 10;
 
-    // more mines == harder
-    const mineCount = 10;
-
     Grid.init(rows, columns);
 
     // in this game we have two grids -- one to display the game board, and one for the mines/hints
-    const mineState = Grid.fill(Grid.displayStateCopy, 'empty');
+    //const mineState = Grid.fill(Grid.displayStateCopy, 'empty');
+    const mineState = Grid.state;
+
+    // more mines == harder
+    const mineCount = 10;
 
     // initialize the mines/hints board first
-    let placedMines = 0;
-    while (placedMines < mineCount) {
-      // put mines randomly within the `mineState` array
-      const {x, y} = Grid.randomPoint;
-
-      if (mineState[x][y] === 'empty') {
-        mineState[x][y] = 'mine';
-        placedMines += 1;
+    for (let i = 0; i < mineCount; i += 1) {
+      let p = Grid.randomPoint;
+      while (!Grid.isEmpty(mineState[p.x][p.y])) {
+        p = Grid.randomPoint;
       }
+      mineState[p.x][p.y] = 'mine';
     }
 
     // Go through the `mineState` array a second time, in order
@@ -52,9 +50,9 @@ content: |
         }
 
         // Find the number of mines contained in neighboring cells
-        let hint = Grid.getNeighbors({ x, y })                           // gets all valid, in-bounds (x, y) positions of neighbors
-                      .filter(({ x, y }) => mineState[x][y] === 'mine') // keep the (x, y) values that represent mines
-                      .length;                                          // count how many there are
+        const hint = Grid.getNeighbors({ x, y })                           // gets all valid, in-bounds (x, y) positions of neighbors
+                         .filter(({ x, y }) => mineState[x][y] === 'mine') // keep the (x, y) values that represent mines
+                         .length;                                          // count how many there are
 
         // now we can display that number; represents how many mines surround the square
         mineState[x][y] = hint;
@@ -62,10 +60,10 @@ content: |
     }
 
     // the game board will be initialized with all cells as "unknown", as the player hasn't revealed any cells yet
-    const displayState = Grid.fill(Grid.displayStateCopy, 'unknown');
+    const displayState = Grid.fill(Grid.state, 'unknown');
 
     // do initial update to show all cells as "unknown"
-    Grid.update(displayState);
+    Grid.state = displayState;
 
     // DEBUG -- this will display the contents of the mine/hint grid
     // Grid.update(mineState);
