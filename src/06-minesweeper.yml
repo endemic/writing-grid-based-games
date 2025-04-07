@@ -22,9 +22,18 @@ content: |
 
     Grid.init(rows, columns);
 
-    // in this game we have two grids -- one to display the game board, and one for the mines/hints
-    //const mineState = Grid.fill(Grid.displayStateCopy, 'empty');
-    const mineState = Grid.state;
+    // minesweeper has two grids used to hold data
+    // 1. what's visible to the player (`displayState`)
+    // 2. position of the mines/hints (`mineState`)
+
+    // initialize the display grid with `unknown`
+    const displayState = Grid.fill(Grid.state, 'unknown');
+
+    // update the visible grid
+    Grid.state = displayState;
+
+    // initialize the mine/hint grid as `empty`
+    const mineState = Grid.fill(Grid.state, 'empty');
 
     // more mines == harder
     const mineCount = 10;
@@ -51,26 +60,40 @@ content: |
 
         // Find the number of mines contained in neighboring cells
         const hint = Grid.getNeighbors({ x, y })                           // gets all valid, in-bounds (x, y) positions of neighbors
-                         .filter(({ x, y }) => mineState[x][y] === 'mine') // keep the (x, y) values that represent mines
-                         .length;                                          // count how many there are
+                          .filter(({ x, y }) => mineState[x][y] === 'mine') // keep the (x, y) values that represent mines
+                          .length;                                          // count how many there are
 
         // now we can display that number; represents how many mines surround the square
         mineState[x][y] = hint;
       }
     }
-
-    // the game board will be initialized with all cells as "unknown", as the player hasn't revealed any cells yet
-    const displayState = Grid.fill(Grid.state, 'unknown');
-
-    // do initial update to show all cells as "unknown"
-    Grid.state = displayState;
-
-    // DEBUG -- this will display the contents of the mine/hint grid
-    // Grid.update(mineState);
-
-    Grid.onPointDown(onDown);
-    Grid.onPointUp(onUp);
-
-    // prevent right-click context menu on the game board
-    document.querySelector('#grid').addEventListener('contextmenu', e => e.preventDefault());
   ```
+
+  ```css
+  .unknown { background-image: url('images/unknown.png'); }
+  .flag { background-image: url('images/flag.png'); }
+
+  .mine { background-image: url('images/mine.png'); }
+  .empty { background-image: url('images/empty.png'); }
+  .one { background-image: url('images/one.png'); }
+  .two { background-image: url('images/two.png'); }
+  .three { background-image: url('images/three.png'); }
+  .four { background-image: url('images/four.png'); }
+  .five { background-image: url('images/five.png'); }
+  .six { background-image: url('images/six.png'); }
+  ```
+
+  ```
+  Grid.onPointDown(({x, y}) => {
+    if (mineState[x][y] === 'mine') {
+      // u lose
+    }
+
+    const nextState = reveal({x, y}, Grid.state);
+
+    Grid.state = nextState;
+
+    if (hasWonGame()) {
+      // u win
+    }
+  });
