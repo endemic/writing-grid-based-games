@@ -36,7 +36,7 @@
 
 Grid.init(rows, columns);</code></pre>
 
-<p>For this version of the game, we’ll keep things simple — on an empty game board, the first click (or tap) on an empty square will place an <em>X</em>, the second will place an <em>O</em>, and so on. The example code already has set up a <code>click</code> event listener on the game board that gets the Cartesian coordinates (x, y) of the clicked space. We can modify this code slightly to place <em>X</em> and <em>O</em> graphics.</p>
+<p>For this version of the game, we’ll keep things simple — on an empty game board, the first click (or tap) on an empty square will place an <em>X</em>, the second will place an <em>O</em>, and so on. The example code already has set up an <code>onPointDown</code> function, which is run whenever a player clicks or taps on the game board. It provides us with the Cartesian coordinates of the clicked square. We can modify this code slightly to place <em>X</em> and <em>O</em> graphics.</p>
 
 <pre><code class="language-diff-javascript diff-highlight">Grid.init(rows, columns);
 
@@ -82,7 +82,14 @@ Grid.onPointDown(({ x, y }) =&gt; {
 +  .o { background: url('o.png') center/100%; }
 }</code></pre>
 
-<p>These background rules specify the image file that should be used for the background, and that the image should be placed in the center of the element, and take up 100% of the available background space. Save and reload, then click the grid — you should start seeing _X_s appear. However, it’t not actually a game of tic-tac-toe yet, since the second player needs to be able to add marks to the board. We can make this happen by toggling the value of the <code>player</code> variable between <code>x</code> and <code>o</code>. After the call to <code>Grid.state = nextState;</code>, add the following condition:</p>
+<p>These background rules specify the image file that should be used for the background, and that the image should be placed in the center of the element, and take up 100% of the available background space. Save and reload, then click the grid — you should start seeing <em>X</em> icons appear.</p>
+
+<figure>
+  <img src="assets/tic-tac-toe/example_1.png" alt="placing Xs for player 1" />
+  <figcaption>placing Xs for player 1</figcaption>
+</figure>
+
+<p>However, it’s not actually a game of tic-tac-toe yet, since the second player needs to be able to add marks to the board. We can make this happen by toggling the value of the <code>player</code> variable between <code>x</code> and <code>o</code>. After the call to <code>Grid.state = nextState;</code>, add the following condition:</p>
 
 <pre><code class="language-diff-javascript diff-highlight">Grid.state = nextState;
 
@@ -93,7 +100,14 @@ Grid.onPointDown(({ x, y }) =&gt; {
 +   player = 'x';
 + }</code></pre>
 
-<p>Now, when you click or tap an empty square, either an <em>X</em> or <em>O</em> will be placed there. We’re getting close! The last part of the game is to check to see if a player has won, or whether it has ended in a tie. If we think about the grid in terms of Cartesian coordinates, it might look something like this:</p>
+<p>Now, when you click or tap an empty square, either an <em>X</em> or <em>O</em> will be placed there. We’re getting close!</p>
+
+<figure>
+  <img src="assets/tic-tac-toe/example_2.png" alt="placing Os for player 2" />
+  <figcaption>placing Os for player 2</figcaption>
+</figure>
+
+<p>The last part of the game is to check to see if a player has won, or whether it has ended in a tie. If we think about the grid in terms of Cartesian coordinates, it might look something like this:</p>
 
 <pre><code>(0, 0) | (1, 0) | (2, 0)
 ------------------------
@@ -138,6 +152,11 @@ if (player === 'x') {</code></pre>
 
 <p>Put this code block right before the condition that swaps player turns. This should correctly identify when one player has won.</p>
 
+<figure>
+  <img src="assets/tic-tac-toe/example_3.gif" alt="winning the game" />
+  <figcaption>winning the game</figcaption>
+</figure>
+
 <p>There’s another end game state, however, and that’s when all squares in the board have been filled in — a tie game. Checking for this state is a bit easier than determining the “win” condition: we need to check each square in the board, and if each is filled (without a player having already won) then the game is tied.</p>
 
 <pre><code class="language-diff-javascript diff-highlight">  if (winner) {
@@ -163,6 +182,11 @@ if (player === 'x') {</code></pre>
 
 // switch players
 if (player === 'x') {</code></pre>
+
+<figure>
+  <img src="assets/tic-tac-toe/example_4.gif" alt="a tied game" />
+  <figcaption>a tied game</figcaption>
+</figure>
 
 <p>One last feature we can implement is a way to programatically reset the game, so that you can keep playing without reloading the page (which re-initializes all the JavaScript code). A way to do this is keep track of whether the game is considered “over” by using a boolean variable. The next time a player clicks on the game board after the game is over will trigger some code to reset the game. Add the boolean right after the local variable used to store the current player.</p>
 
@@ -197,6 +221,11 @@ Grid.onPointDown(({ x, y }) =&gt; {</code></pre>
 + }
 
   const nextState = Grid.state;</code></pre>
+
+<figure>
+  <img src="assets/tic-tac-toe/example_5.gif" alt="reset after game over" />
+  <figcaption>reset after game over</figcaption>
+</figure>
 
 <p>And that’s it! You’ve created a version of tic-tac-toe that’s playable via a web browser. This sets the stage for making more complicated games in the future.</p>
 

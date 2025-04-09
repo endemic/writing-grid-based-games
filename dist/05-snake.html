@@ -87,7 +87,8 @@ Grid.onKeyDown(({ key }) =&gt; {</code></pre>
 
 <pre><code class="language-diff-javascript diff-highlight">Grid.state = nextState;
 +
-+ window.setInterval(update, 30);
++ // store the ID so we can turn off the update loop later if we need to
++ const intervalId = setInterval(update, 30);
 </code></pre>
 
 <p>Now that we’ve referenced the <code>update</code> function, we actually have to write it.</p>
@@ -126,7 +127,8 @@ Grid.onKeyDown(({ key }) =&gt; {</code></pre>
   Grid.state = nextState;
 };
 
-window.setInterval(update, 30);
+// store the ID so we can turn off the update loop later if we need to
+const intervalId = setInterval(update, 30);
 </code></pre>
 
 <p>Save the game source file and reload the page; you should see the snake continually moving from left to right.</p>
@@ -272,7 +274,22 @@ for (const {x, y} of snake) {
   nextState[x][y] = 'snake';
 }</code></pre>
 
-<p>The last rule we’ll program in is that the snake can’t touch its own body — no ouroboros-ing!</p>
+<p>The last rule we’ll program in is that the snake can’t touch its own body — no ouroboros-ing! We’ll accomplish this by checking if the new head overlaps the body. If it does, then display a message and stop the update loop. Otherwise, continue as normal.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">const nextState = Grid.state;
++
++ if (nextState[snakeHead.x][snakeHead.y] === 'snake') {
++   delayedAlert('game over, man!');
++   clearInterval(intervalId);
++ }
+
+// clear the current snake position
+for (const {x, y} of snake) {
+  nextState[x][y] = '';
+}
+
+// push the new head on to the front of the `snake` array,
+snake.unshift(snakeHead);</code></pre>
 
 <p>TODO: add <code>delayedAlert</code> (or similar) to grid</p>
 
