@@ -2,9 +2,154 @@ title: Game #6: Sokoban
 author: Nathan Demick
 description: Make a "Sokoban" game with GridJS
 content: |
-  [Sokoban](https://en.wikipedia.org/wiki/Sokoban) is yet another classic casual game genre. You control a player who must organize boxes by pushing them to certain locations. The difficulty is to not get a box stuck by pushing it against the wall or into a corner. As a kid, I played games with similar mechanics, such as [Rodent's Revenge](https://en.wikipedia.org/wiki/Rodent's_Revenge). These sorts of games are easily made with GridJS, as they limit movement to within a grid in each level. Let's go ahead and figure out how to make a basic sokoban game.
+  [Sokoban](https://en.wikipedia.org/wiki/Sokoban) is yet another classic casual game genre. You control a warehouse worker who must organize boxes by pushing them to certain locations. The difficulty is to not get a box stuck by pushing it against the wall or into a corner. As a kid, I played games with similar mechanics, such as [Rodent's Revenge](https://en.wikipedia.org/wiki/Rodent's_Revenge). These sorts of games are easily made with GridJS, as they limit movement to within a grid. Let's go ahead and figure out how to make a basic sokoban game.
 
-  As always, [download the GridJS source](https://github.com/endemic/gridjs/releases/latest), which has a `game.js` template file with some example code.
+  As always, [download the GridJS source](https://github.com/endemic/gridjs/releases/latest), which has a `game.js` template file with some example code. You can then open the `index.html` file (**File &rarr; Open File &rarr; index.html**) in a browser and have the game run instantly.
+
+  The template is set up to initialize a 10x10 grid. This is a reasonable size for a basic sokoban level, so we'll keep those dimensions. The first step in making the game will be to draw walls in the level. You should know the drill by now &mdash; any string you store in the grid will be used as a CSS class in the resulting HTML. So any image you want to represent a game object should have a rule in the `main.css` file.
+
+  <pre><code class="language-diff-css diff-highlight">#grid {
+    /* omitted for brevity */
+
+    - .highlight {
+    -   background-color: blueviolet;
+    - }
+    + .wall {
+    +   background: url('wall.png') center/100%;
+    + }
+  }</code></pre>
+
+  Make your own graphics if you want, otherwise you can [download some.](assets/sokoban/images.zip).
+
+  Now we have to figure out what we want the level to look like. I guess normally you'd have some sort of fancy data structure for storing levels, but here we're gonna just use a 2D array. One benefit of this is being able to edit the level directly in your source file. In this array, a space will be an empty area, and a `#` will be a wall. After the call to `Grid.init`, add the level data.
+
+  <pre><code class="language-diff-javascript diff-highlight">Grid.init(rows, columns);
+
+  // hard code the level
+  + const level = [
+  +   ['#','#','#','#','#',' ',' ',' ',' ',' '],
+  +   ['#',' ',' ',' ','#',' ','#','#','#',' '],
+  +   ['#',' ',' ',' ','#',' ','#',' ','#',' '],
+  +   ['#',' ',' ',' ','#',' ','#',' ','#',' '],
+  +   ['#','#','#',' ','#','#','#',' ','#',' '],
+  +   [' ','#','#',' ',' ',' ',' ',' ','#',' '],
+  +   [' ','#',' ',' ',' ','#',' ',' ','#',' '],
+  +   [' ','#',' ',' ',' ','#','#','#','#',' '],
+  +   [' ','#','#','#','#','#',' ',' ',' ',' '],
+  +   [' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
+  + ];</code></pre>
+
+  Now we need to take that data and display it in the game, by injecting it into the grid. We're converting the `#` symbol into the string `'wall'`, just so that it's easier to see how the level will look when each grid cell is a single character. To do that we'll loop over each (x,y) position of the level data, and set the corresponding value in GridJS's `state`. After the `level` variable, add the following:
+
+  <pre><code class="language-diff-javascript diff-highlight">+ const nextState = Grid.state;
+
+  + for (let x = 0; x < Grid.columns; x += 1) {
+  +   for (let y = 0; y < Grid.rows; y += 1) {
+  +     const cell = level[x][y];
+  + 
+  +     // evaluate the simplifed text contents of the 
+  +     // level data and set the state of the grid
+  +     switch (cell) {
+  +       case '#':
+  +         nextState[x][y] = 'wall';
+  +         break;
+  +   }
+  + }
+  + 
+  + Grid.state = nextState;</code></pre>
+
+  Save the `game.js` file and reload the `index.html` file in your browser, and you should see the level displayed!
+
+  <figure>
+    <img src="assets/sokoban/example_1.png" alt="walls created">
+    <figcaption>walls created</figcaption>
+  </figure>
+
+  But wait... something's not quite right. We were expecting the level to look the same as what we created in the code, but it looks like it's been rotated 90 degrees and flipped vertically. The reason behind this is because of the way we represent 2D arrays in code. Looping over the array twice with `x` and `y` variables accesses them like this:
+
+  <pre><code>
+    [
+      [x=0,y=0],[x=0,y=1],[x=0,y=2],[x=0,y=3],
+      [x=1,y=0],[x=1,y=1],[x=1,y=2],[x=1,y=3],
+      [x=2,y=0],[x=2,y=1],[x=2,y=2],[x=2,y=3],
+      [x=3,y=0],[x=3,y=1],[x=3,y=2],[x=3,y=3],
+    ]
+  </code></pre>
+
+  You can see that this loop is the inverse of how we expect Cartesian coordinates to be represented. We can solve the problem in one of two ways.
+
+  <pre><code class="language-diff-javascript diff-highlight">- for (let x = 0; x < Grid.columns; x += 1) {
+  -   for (let y = 0; y < Grid.rows; y += 1) {
+  // change the order of the loops
+  + for (let y = 0; y < Grid.rows; y += 1) {
+  +   for (let x = 0; x < Grid.columns; x += 1) {
+  -     const cell = level[x][y];
+  // _OR_ change the order of the array indexing
+  +     const cell = level[y][x];
+  
+      // evaluate the simplifed text contents of the 
+      // level data and set the state of the grid
+      switch (cell) {
+        case '#':
+          nextState[x][y] = 'wall';
+          break;
+    }
+  }</code></pre>
+
+  GridJS uses the first solution when mapping its `state` variable to the HTML on the page, so we can use `x` and `y` to access grid values in a more natural way.
+
+  The next thing we can add is the player. We'll take a page out of [roguelike games](https://en.wikipedia.org/wiki/Roguelike) and use `@` to represent the player's starting location in the level.
+
+  <pre><code class="language-diff-javascript diff-highlight">const level = [
+    ['#','#','#','#','#',' ',' ',' ',' ',' '],
+  - ['#',' ',' ',' ','#',' ','#','#','#',' '],
+  + ['#','@',' ',' ','#',' ','#','#','#',' '],
+    ['#',' ',' ',' ','#',' ','#',' ','#',' '],
+    ['#',' ',' ',' ','#',' ','#',' ','#',' '],
+    ['#','#','#',' ','#','#','#',' ','#',' '],
+    [' ','#','#',' ',' ',' ',' ',' ','#',' '],
+    [' ','#',' ',' ',' ','#',' ',' ','#',' '],
+    [' ','#',' ',' ',' ','#','#','#','#',' '],
+    [' ','#','#','#','#','#',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
+  ];</code></pre>
+
+  Now we need to handle the `@` value in the code that parses the level. We'll also create a new variable, `player`, that is a reference to the player's current position. It would be tedious if every time we wanted to move the player, we had to search the entire grid to find the cell that contained the `'player'` value.
+
+  <pre><code class="language-diff-javascript diff-highlight">+ const player = {x: 0, y: 0};
+  +
+  for (let y = 0; y < Grid.rows; y += 1) {
+    for (let x = 0; x < Grid.columns; x += 1) {
+      const cell = level[x][y];
+
+      // evaluate the simplifed text contents of the 
+      // level data and set the state of the grid
+      switch (cell) {
+        case '#':
+          nextState[x][y] = 'wall';
+          break;
+  +     case '@':
+  +       nextState[x][y] = 'player';
+  +       player.x = x;
+  +       player.y = y;
+  +       break;
+    }
+  }</code></pre>
+
+  Of course this means we also need to create a CSS rule to display the "player" graphic.
+
+  <pre><code class="language-diff-css diff-highlight">#grid {
+    /* omitted for brevity */
+
+    .wall {
+      background: url('wall.png') center/100%;
+    }
+  + .player {
+  +   background: url('player.png') center/100%;
+  + }
+  }</code></pre>
+
+  ----------------
 
   1. Draw walls
   2. Draw player
