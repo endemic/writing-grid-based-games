@@ -1,10 +1,10 @@
 title: Game #6: Sokoban
 author: Nathan Demick
-description: Make a "Sokoban" game with GridJS
+description: Make a "Sokoban" game with Waffle
 content: |
-  [Sokoban](https://en.wikipedia.org/wiki/Sokoban) is yet another classic casual game genre. You control a warehouse worker who must organize boxes by pushing them to certain locations. The difficulty is to not get a box stuck by pushing it against the wall or into a corner. As a kid, I played games with similar mechanics, such as [Rodent's Revenge](https://en.wikipedia.org/wiki/Rodent's_Revenge). These sorts of games are easily made with GridJS, as they limit movement to within a grid. Let's go ahead and figure out how to make a basic sokoban game.
+  [Sokoban](https://en.wikipedia.org/wiki/Sokoban) is yet another classic casual game genre. You control a warehouse worker who must organize boxes by pushing them to certain locations. The difficulty is to not get a box stuck by pushing it against the wall or into a corner. As a kid, I played games with similar mechanics, such as [Rodent's Revenge](https://en.wikipedia.org/wiki/Rodent's_Revenge). These sorts of games are easily made with Waffle, as they limit movement to within a grid. Let's go ahead and figure out how to make a basic sokoban game.
 
-  As always, [download the GridJS source](https://github.com/endemic/gridjs/releases/latest), which has a `game.js` template file with some example code. You can then open the `index.html` file (**File &rarr; Open File &rarr; index.html**) in a browser and have the game run instantly.
+  As always, [download the Waffle source](https://github.com/endemic/waffle/releases/latest), which has a `game.js` template file with some example code. You can then open the `index.html` file (**File &rarr; Open File &rarr; index.html**) in a browser and have the game run instantly.
 
   The template is set up to initialize a 10x10 grid. This is a reasonable size for a basic sokoban level, so we'll keep those dimensions. The first step in making the game will be to draw walls in the level. You should know the drill by now &mdash; any string you store in the grid will be used as a CSS class in the resulting HTML. So any image you want to represent a game object should have a rule in the `main.css` file.
 
@@ -21,9 +21,9 @@ content: |
 
   Make your own graphics if you want, otherwise you can [download some.](assets/sokoban/images.zip).
 
-  Now we have to figure out what we want the level to look like. I guess normally you'd have some sort of fancy data structure for storing levels, but here we're gonna just use a 2D array. One benefit of this is being able to edit the level directly in your source file. In this array, a space will be an empty area, and a `#` will be a wall. After the call to `Grid.init`, add the level data.
+  Now we have to figure out what we want the level to look like. I guess normally you'd have some sort of fancy data structure for storing levels, but here we're gonna just use a 2D array. One benefit of this is being able to edit the level directly in your source file. In this array, a space will be an empty area, and a `#` will be a wall. After the call to `Waffle.init`, add the level data.
 
-  <pre><code class="language-diff-javascript diff-highlight">Grid.init(rows, columns);
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.init(rows, columns);
 
   // hard code the level
   + const level = [
@@ -39,15 +39,15 @@ content: |
   +   [' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
   + ];</code></pre>
 
-  Now we need to take that data and display it in the game, by injecting it into the grid. We're converting the `#` symbol into the string `'wall'`, just so that it's easier to see how the level will look when each grid cell is a single character. To do that we'll loop over each (x,y) position of the level data, and set the corresponding value in GridJS's `state`. After the `level` variable, add the following:
+  Now we need to take that data and display it in the game, by injecting it into the grid. We're converting the `#` symbol into the string `'wall'`, just so that it's easier to see how the level will look when each grid cell is a single character. To do that we'll loop over each (x,y) position of the level data, and set the corresponding value in Waffle's `state`. After the `level` variable, add the following:
 
-  <pre><code class="language-diff-javascript diff-highlight">+ const nextState = Grid.state;
+  <pre><code class="language-diff-javascript diff-highlight">+ const nextState = Waffle.state;
 
-  + for (let x = 0; x < Grid.columns; x += 1) {
-  +   for (let y = 0; y < Grid.rows; y += 1) {
+  + for (let x = 0; x < Waffle.columns; x += 1) {
+  +   for (let y = 0; y < Waffle.rows; y += 1) {
   +     const cell = level[x][y];
-  + 
-  +     // evaluate the simplifed text contents of the 
+  +
+  +     // evaluate the simplifed text contents of the
   +     // level data and set the state of the grid
   +     switch (cell) {
   +       case '#':
@@ -55,8 +55,8 @@ content: |
   +         break;
   +   }
   + }
-  + 
-  + Grid.state = nextState;</code></pre>
+  +
+  + Waffle.state = nextState;</code></pre>
 
   Save the `game.js` file and reload the `index.html` file in your browser, and you should see the level displayed!
 
@@ -78,16 +78,16 @@ content: |
 
   You can see that this loop is the inverse of how we expect Cartesian coordinates to be represented. We can solve the problem in one of two ways.
 
-  <pre><code class="language-diff-javascript diff-highlight">- for (let x = 0; x < Grid.columns; x += 1) {
-  -   for (let y = 0; y < Grid.rows; y += 1) {
+  <pre><code class="language-diff-javascript diff-highlight">- for (let x = 0; x < Waffle.columns; x += 1) {
+  -   for (let y = 0; y < Waffle.rows; y += 1) {
   // change the order of the loops
-  + for (let y = 0; y < Grid.rows; y += 1) {
-  +   for (let x = 0; x < Grid.columns; x += 1) {
+  + for (let y = 0; y < Waffle.rows; y += 1) {
+  +   for (let x = 0; x < Waffle.columns; x += 1) {
   -     const cell = level[x][y];
   // _OR_ change the order of the array indexing
   +     const cell = level[y][x];
-  
-      // evaluate the simplifed text contents of the 
+
+      // evaluate the simplifed text contents of the
       // level data and set the state of the grid
       switch (cell) {
         case '#':
@@ -96,7 +96,7 @@ content: |
     }
   }</code></pre>
 
-  GridJS uses the first solution when mapping its `state` variable to the HTML on the page, so we can use `x` and `y` to access grid values in a more natural way.
+  Waffle uses the first solution when mapping its `state` variable to the HTML on the page, so we can use `x` and `y` to access grid values in a more natural way.
 
   The next thing we can add is the player. We'll take a page out of [roguelike games](https://en.wikipedia.org/wiki/Roguelike) and use `@` to represent the player's starting location in the level.
 
@@ -118,11 +118,11 @@ content: |
 
   <pre><code class="language-diff-javascript diff-highlight">+ const player = {x: 0, y: 0};
   +
-  for (let y = 0; y < Grid.rows; y += 1) {
-    for (let x = 0; x < Grid.columns; x += 1) {
+  for (let y = 0; y < Waffle.rows; y += 1) {
+    for (let x = 0; x < Waffle.columns; x += 1) {
       const cell = level[x][y];
 
-      // evaluate the simplifed text contents of the 
+      // evaluate the simplifed text contents of the
       // level data and set the state of the grid
       switch (cell) {
         case '#':
@@ -162,7 +162,7 @@ content: |
   const rows = 10;
   const columns = 10;
 
-  Grid.init(rows, columns);
+  Waffle.init(rows, columns);
 
   // hard code the level
   const level = [
@@ -180,17 +180,17 @@ content: |
 
   const player = {x: 0, y: 0};
 
-  // gridjs is so simple that it doesn't have a way to persist overlapping
+  // waffle is so simple that it doesn't have a way to persist overlapping
   // objects. The moving object overwrites whatever was there previously. In sokoban,
   // this is a problem because both the player and boxes can move over top of box targets,
   // which need to re-appear if the player or box moves back off again. Therefore, we need
-  // to store the location of targets in a separate data structure instead of just in `Grid.state`
+  // to store the location of targets in a separate data structure instead of just in `Waffle.state`
   const targets = [];
 
-  const nextState = Grid.state;
+  const nextState = Waffle.state;
 
-  for (let x = 0; x < Grid.columns; x += 1) {
-    for (let y = 0; y < Grid.rows; y += 1) {
+  for (let x = 0; x < Waffle.columns; x += 1) {
+    for (let y = 0; y < Waffle.rows; y += 1) {
       // note the reversed order of x and y
       // allows us to have a 2d array that looks the same in the code
       const cell = level[y][x];
@@ -217,9 +217,9 @@ content: |
     }
   }
 
-  Grid.state = nextState;
+  Waffle.state = nextState;
 
-  Grid.onKeyDown(({ key }) => {
+  Waffle.onKeyDown(({ key }) => {
     const move = {x: 0, y: 0};
 
     switch (key) {
@@ -242,7 +242,7 @@ content: |
       y: player.y + move.y
     };
 
-    const state = Grid.state;
+    const state = Waffle.state;
 
     // TODO: not sure this makes things clearer; uses scope access of `state` variable
     const movePlayer = (destination) => {
@@ -280,12 +280,12 @@ content: |
 
     // ensure targets are re-displayed if player/box moves off them
     for (const t of targets) {
-      if (Grid.isEmpty(state[t.x][t.y])) {
+      if (Waffle.isEmpty(state[t.x][t.y])) {
         state[t.x][t.y] = 'target';
       }
     }
 
-    Grid.state = state;
+    Waffle.state = state;
 
     if (hasWonGame()) {
       alert('u win');
@@ -293,13 +293,13 @@ content: |
   });
 
   const canMoveTo = (point) => {
-    const state = Grid.state;
+    const state = Waffle.state;
 
-    return Grid.isEmpty(state[point.x][point.y]) || state[point.x][point.y] === 'target';
+    return Waffle.isEmpty(state[point.x][point.y]) || state[point.x][point.y] === 'target';
   };
 
   const hasWonGame = () => {
-    const state = Grid.state;
+    const state = Waffle.state;
 
     return targets.every(t => state[t.x][t.y] === 'box');
   };

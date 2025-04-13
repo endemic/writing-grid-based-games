@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Game | Ganbaru Games</title>
-    
-    <meta name="description" content="Make a "Minesweeper" game with GridJS">
+
+    <meta name="description" content="Make a "Minesweeper" game with Waffle">
     <meta name="author" content="Nathan Demick">
 
     <meta property="og:title" content="Game" />
-    <meta property="og:description" content="Make a "Minesweeper" game with GridJS" />
+    <meta property="og:description" content="Make a "Minesweeper" game with Waffle" />
 
     <link rel="stylesheet" href="https://ganbaru.games/assets/stylesheets/main.css">
     <link rel="shortcut icon" href="https://ganbaru.games/assets/images/henohenomoheji.png" type="image/png">
@@ -43,29 +43,29 @@ const init = () =&gt; {
   const rows = 10;
   const columns = 10;</p>
 
-<p>Grid.init(rows, columns);</p>
+<p>Waffle.init(rows, columns);</p>
 
 <p>// minesweeper has two grids used to hold data
   // 1. what’s visible to the player (<code>displayState</code>)
   // 2. position of the mines/hints (<code>mineState</code>)</p>
 
 <p>// initialize the display grid with <code>unknown</code>
-  const displayState = Grid.fill(Grid.state, ‘unknown’);</p>
+  const displayState = Waffle.fill(Waffle.state, ‘unknown’);</p>
 
 <p>// update the visible grid
-  Grid.state = displayState;</p>
+  Waffle.state = displayState;</p>
 
 <p>// initialize the mine/hint grid as <code>empty</code>
-  const mineState = Grid.fill(Grid.state, ‘empty’);</p>
+  const mineState = Waffle.fill(Waffle.state, ‘empty’);</p>
 
 <p>// more mines == harder
   const mineCount = 10;</p>
 
 <p>// initialize the mines/hints board first
   for (let i = 0; i &lt; mineCount; i += 1) {
-    let p = Grid.randomPoint;
-    while (!Grid.isEmpty(mineState[p.x][p.y])) {
-      p = Grid.randomPoint;
+    let p = Waffle.randomPoint;
+    while (!Waffle.isEmpty(mineState[p.x][p.y])) {
+      p = Waffle.randomPoint;
     }
     mineState[p.x][p.y] = ‘mine’;
   }</p>
@@ -82,7 +82,7 @@ const init = () =&gt; {
   }
 
   // Find the number of mines contained in neighboring cells
-  const hint = Grid.getNeighbors({ x, y })                           // gets all valid, in-bounds (x, y) positions of neighbors
+  const hint = Waffle.getNeighbors({ x, y })                           // gets all valid, in-bounds (x, y) positions of neighbors
                     .filter(({ x, y }) =&gt; mineState[x][y] === 'mine') // keep the (x, y) values that represent mines
                     .length;                                          // count how many there are
 
@@ -106,14 +106,14 @@ const init = () =&gt; {
 ```</p>
 
 <p>```
-Grid.onPointDown(({x, y}) =&gt; {
+Waffle.onPointDown(({x, y}) =&gt; {
   if (mineState[x][y] === ‘mine’) {
     // u lose
   }</p>
 
-<p>const nextState = reveal({x, y}, Grid.state);</p>
+<p>const nextState = reveal({x, y}, Waffle.state);</p>
 
-<p>Grid.state = nextState;</p>
+<p>Waffle.state = nextState;</p>
 
 <p>if (hasWonGame()) {
     // u win
@@ -143,7 +143,7 @@ Grid.onPointDown(({x, y}) =&gt; {
       </p>
 
       <ul>
-        <li><a href="https://github.com/endemic/gridjs">Game making resources</a></li>
+        <li><a href="https://github.com/endemic/waffle">Game making resources</a></li>
         <li><a href="mailto:support@ganbarugames.com">Contact</a></li>
         <li><a href="/privacy.html" title="Privacy Policy">Privacy Policy</a></li>
       </ul>

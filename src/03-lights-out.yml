@@ -1,36 +1,36 @@
 title: Game &#35;3&#58; Lights Out
 author: Nathan Demick
-description: Make a "Lights Out" game with GridJS
+description: Make a "Lights Out" game with Waffle
 content: |
   [Lights Out](https://en.wikipedia.org/wiki/Lights_Out_(game)) was a game made by Tiger Electronics (known for their crappy LCD handhelds) back in 1995. The concept was that a grid of backlit buttons could be pressed by the player. The grid was initialized with randomly lit buttons, and the goal was to "turn off" all the lights. Pressing a lit button turns it off, but also causes the four adjacent buttons to turn on.
 
-  This sort of game is perfect to re-implement in gridjs. First, [download GridJS](https://github.com/endemic/gridjs/releases/latest), which includes an `index.html` file that automatically loads the necessary JavaScript and CSS files. Next, open the `game.js` file in a text editor; you'll see that there is some example code there already which initializes a 10x10 grid, and sets up a simple event handler to toggle grid cell background colors. The first thing we can do is change the grid size to a 5x5 board.
+  This sort of game is perfect to re-implement in waffle. First, [download Waffle](https://github.com/endemic/waffle/releases/latest), which includes an `index.html` file that automatically loads the necessary JavaScript and CSS files. Next, open the `game.js` file in a text editor; you'll see that there is some example code there already which initializes a 10x10 grid, and sets up a simple event handler to toggle grid cell background colors. The first thing we can do is change the grid size to a 5x5 board.
 
   <pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
   - const columns = 10;
   + const rows = 5;
   + const columns = 5;
 
-  Grid.init(rows, columns);</code></pre>
+  Waffle.init(rows, columns);</code></pre>
 
-  The first thing we need to do is randomly "light up" squares on the game board. After the call to `Grid.init()`, add the following:
+  The first thing we need to do is randomly "light up" squares on the game board. After the call to `Waffle.init()`, add the following:
 
-  <pre><code class="language-diff-javascript diff-highlight">Grid.init(rows, columns);
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.init(rows, columns);
   +
-  + const newState = Grid.state;
+  + const newState = Waffle.state;
   +
-  + for (let x = 0; x < Grid.rows; x += 1) {
-  +  for (let y = 0; y < Grid.columns; y += 1) {
+  + for (let x = 0; x < Waffle.rows; x += 1) {
+  +  for (let y = 0; y < Waffle.columns; y += 1) {
   +    if (Math.random() > 0.5) {
   +      newState[x][y] = 'light';
   +    }
   +  }
   + }
   +
-  + Grid.state = newState;
+  + Waffle.state = newState;
   </code></pre>
 
-  This code loops through the game board, and will randomly give cells in the grid a value of `light`. As some pedants will tell you, `Math.random()` is not truly random, but for our purposes it's good enough. It will return a value between 0 and 1. If you save the `game.js` file and load `index.html` in a browser (<strong>File &rarr; Open File &rarr; index.html</strong>), you should see the 5x5 grid in the center of the page. But you won't see the randomized pattern of lit squares. That's because GridJS uses CSS classes to apply styling to each square. The page looks for a class style of `.light` inside of `main.css`, but it's not there. Let's add it now. Make your own image to represent a light, or else download an example [here](assets/lights-out/light.png), and put it in the same folder as the rest of the GridJS files. Then add the following at the bottom of `main.css`:
+  This code loops through the game board, and will randomly give cells in the grid a value of `light`. As some pedants will tell you, `Math.random()` is not truly random, but for our purposes it's good enough. It will return a value between 0 and 1. If you save the `game.js` file and load `index.html` in a browser (<strong>File &rarr; Open File &rarr; index.html</strong>), you should see the 5x5 grid in the center of the page. But you won't see the randomized pattern of lit squares. That's because Waffle uses CSS classes to apply styling to each square. The page looks for a class style of `.light` inside of `main.css`, but it's not there. Let's add it now. Make your own image to represent a light, or else download an example [here](assets/lights-out/light.png), and put it in the same folder as the rest of the Waffle files. Then add the following at the bottom of `main.css`:
 
   <pre><code class="language-diff-css diff-highlight">#grid {
     /* ... */
@@ -50,37 +50,37 @@ content: |
     <figcaption>randomly placed lights</figcaption>
   </figure>
 
-  Next we want to toggle lights when the user touches or clicks the grid. We can accomplish this by modifying the `onPointDown` callback function example that's already in the `game.js` source file. The rules of the game stipulate that touching a cell will toggle it on/off, as well as the four neighbors (above/below/left/right) surrounding it. Fortunately, GridJS has a handy `getNeighbors` helper function that will get those four adjacent cells. Once we have a reference to each neighbor, we can turn each one "on" or "off."
+  Next we want to toggle lights when the user touches or clicks the grid. We can accomplish this by modifying the `onPointDown` callback function example that's already in the `game.js` source file. The rules of the game stipulate that touching a cell will toggle it on/off, as well as the four neighbors (above/below/left/right) surrounding it. Fortunately, Waffle has a handy `getNeighbors` helper function that will get those four adjacent cells. Once we have a reference to each neighbor, we can turn each one "on" or "off."
 
-  <pre><code class="language-diff-javascript diff-highlight">- Grid.onKeyDown(({ key }) => {
+  <pre><code class="language-diff-javascript diff-highlight">- Waffle.onKeyDown(({ key }) => {
   -   console.log(`pressed ${key}`);
   - });
 
-  Grid.onPointDown(({ x, y }) => {
+  Waffle.onPointDown(({ x, y }) => {
   - console.debug(`clicked grid cell (${x}, ${y})`);
 
   - /* replace this with your own code! */
-    const newState = Grid.state;
+    const newState = Waffle.state;
 
-  - if (Grid.isEmpty(newState[x][y])) {
+  - if (Waffle.isEmpty(newState[x][y])) {
   -   newState[x][y] = 'highlight';
   - } else {
   -   newState[x][y] = '';
   - }
 
   + // helper function to turn a cell on/off
-  + const toggle = ({x, y}) => newState[x][y] = Grid.isEmpty(newState[x][y]) ? 'light' : '';
-  + 
+  + const toggle = ({x, y}) => newState[x][y] = Waffle.isEmpty(newState[x][y]) ? 'light' : '';
+  +
   + // update the clicked cell
   + toggle({x, y});
   +
   + // update the neighboring cells
-  + const neighbors = Grid.getNeighbors({x, y});
+  + const neighbors = Waffle.getNeighbors({x, y});
   + for (const neighbor of neighbors) {
   +   toggle(neighbor);
   + }
 
-    Grid.state = newState;
+    Waffle.state = newState;
   });
   </code></pre>
 
@@ -93,22 +93,22 @@ content: |
 
   The last feature we need to add is to check whether the game has been won. To do this we basically check to ensure that each cell in the grid is "off." We can write a new function called `hasWonGame` to handle this:
 
-  <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }) => {
     // omitted for brevity...
   });
 
   + const hasWonGame = () => {
-  +   const state = Grid.state;
+  +   const state = Waffle.state;
   +
-  +   for (let x = 0; x < Grid.rows; x += 1) {
-  +     for (let y = 0; y < Grid.columns; y += 1) {
+  +   for (let x = 0; x < Waffle.rows; x += 1) {
+  +     for (let y = 0; y < Waffle.columns; y += 1) {
   +       // if any cell is not empty (e.g. has a value of 'light'), instantly fail
-  +       if (!Grid.isEmpty(state[x][y])) {
+  +       if (!Waffle.isEmpty(state[x][y])) {
   +         return false;
   +       }
   +     }
   +   }
-  +   
+  +
   +   // we verified the whole board is empty!
   +   return true;
   + };
@@ -116,22 +116,22 @@ content: |
 
   Which can then be used like so:
 
-  <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
-    const newState = Grid.state;
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }) => {
+    const newState = Waffle.state;
 
     // helper function to turn a cell on/off
-    const toggle = ({x, y}) => newState[x][y] = Grid.isEmpty(newState[x][y]) ? 'light' : '';
-    
+    const toggle = ({x, y}) => newState[x][y] = Waffle.isEmpty(newState[x][y]) ? 'light' : '';
+
     // update the clicked cell
     toggle({x, y});
-  
+
     // update the neighboring cells
-    const neighbors = Grid.getNeighbors({x, y});
+    const neighbors = Waffle.getNeighbors({x, y});
     for (const neighbor in neighbors) {
       toggle(neighbor);
     }
 
-    Grid.state = newState;
+    Waffle.state = newState;
 
   + if (hasWonGame()) {
   +   delayedAlert('You win!!');
@@ -148,4 +148,4 @@ content: |
 
   ### Extra Credit
 
-  Reset the game board after a win, so that the player doesn't need to reload the page in order to re-initialize the game. One way to do this might be to move the code that randomly lights up the board (after the call to `Grid.init()`) into its own function, called `setup` or `reset` or something. That new function could then be called inside the `hasWonGame()` conditional block.
+  Reset the game board after a win, so that the player doesn't need to reload the page in order to re-initialize the game. One way to do this might be to move the code that randomly lights up the board (after the call to `Waffle.init()`) into its own function, called `setup` or `reset` or something. That new function could then be called inside the `hasWonGame()` conditional block.

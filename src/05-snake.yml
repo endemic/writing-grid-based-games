@@ -1,19 +1,19 @@
 title: Game &#35;5&#58; Snake
 author: Nathan Demick
-description: Make a "Snake" game with GridJS
+description: Make a "Snake" game with Waffle
 content: |
   One classic genre for casual games is named, appropriately, "[Snake](https://en.wikipedia.org/wiki/Snake_(video_game_genre))." The basic idea of these sorts of games is that you control a snake, which gets ever longer. The challenge being that in order to score points, you move the snake across "apples" (is this some veiled Garden of Eden reference?) that increase the snake's length. The snake continually moves in whatever direction it is facing, and if the head touches any part of the body, you lose.
 
   This sort of game is perfect for a grid; each segment of the snake's body can be represented by a grid cell. In this version, the `snake` object consists of an array of points, represented by Cartesian coordinates. The snake can then be moved one square at a time by inserting a new set of coordinates as the first element of the array, and popping the last set of coordinates off the end of the array.
 
-  The initial game setup is fairly basic. Download the [grid.js project template](https://github.com/endemic/gridjs/releases/latest) and make these changes at the start of the `game.js` file:
+  The initial game setup is fairly basic. Download the [Waffle project template](https://github.com/endemic/waffle/releases/latest) and make these changes at the start of the `game.js` file:
 
   <pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
   - const columns = 10;
   + const rows = 50;
   + const columns = 50;
 
-  Grid.init(rows, columns);
+  Waffle.init(rows, columns);
 
   + const snake = [
   +   { x: 25, y: 25 }, // this is the "head" of the snake
@@ -22,7 +22,7 @@ content: |
   +   { x: 22, y: 25 }
   + ];
   +
-  + const nextState = Grid.state;
+  + const nextState = Waffle.state;
   +
   + // set the correct grid cells with the snake's body
   + for (const {x, y} of snake) {
@@ -30,9 +30,9 @@ content: |
   + }
   +
   + // update the game state, which draws the snake
-  + Grid.state = nextState;
+  + Waffle.state = nextState;
 
-  Grid.onKeyDown(({ key }) => {</code></pre>
+  Waffle.onKeyDown(({ key }) => {</code></pre>
 
   Add the following style rules to `main.css`, in order to represent the game background and the snake.
 
@@ -62,7 +62,7 @@ content: |
 
   After the code which initializes the snake, add this line, which sets up the update loop to run every 30ms.
 
-  <pre><code class="language-diff-javascript diff-highlight">Grid.state = nextState;
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.state = nextState;
   +
   + // store the ID so we can turn off the update loop later if we need to
   + const intervalId = setInterval(update, 30);
@@ -73,16 +73,16 @@ content: |
   <pre><code class="language-diff-javascript diff-highlight">+ const update = () => {
     // copy the snake's head to make a new one
     const snakeHead = { ...snake[0] };
-    
+
     // for now, it will always move to the right
     snakeHead.x += 1;
 
     // this check will "wrap" the snake around the screen
-    if (snakeHead.x >= Grid.columns) {
+    if (snakeHead.x >= Waffle.columns) {
       snakeHead.x = 0;
     }
 
-    const nextState = Grid.state;
+    const nextState = Waffle.state;
 
     // clear the current snake position
     for (const {x, y} of snake) {
@@ -101,7 +101,7 @@ content: |
     }
 
     // update the game state, which draws the snake
-    Grid.state = nextState;
+    Waffle.state = nextState;
   };
 
   // store the ID so we can turn off the update loop later if we need to
@@ -115,7 +115,7 @@ content: |
     <figcaption>whoah, it's a snake!</figcaption>
   </figure>
 
-  Nice! We've gone from static to dynamic &mdash; and the next step is to add interactivity. For simplicity's sake, we'll focus on using a keyboard for user input; touch controls will be left as an exercise for the reader. The `game.js` script already has an example of how gridjs handles keyboard input. If you open the developer console and mash the keyboards while viewing `index.html`, you should see a bunch of messages scroll by indicating which key was pressed.
+  Nice! We've gone from static to dynamic &mdash; and the next step is to add interactivity. For simplicity's sake, we'll focus on using a keyboard for user input; touch controls will be left as an exercise for the reader. The `game.js` script already has an example of how waffle handles keyboard input. If you open the developer console and mash the keyboards while viewing `index.html`, you should see a bunch of messages scroll by indicating which key was pressed.
 
   Now we need to add logic that actually changes the direction the snek is moving. We already have a `snake` variable which stores _location_, so it makes sense to make a new variable to store _direction_.
 
@@ -139,14 +139,14 @@ content: |
   + snakeHead.y += direction.y;
 
   // this check will "wrap" the snake around the screen
-  if (snakeHead.x >= Grid.columns) {
+  if (snakeHead.x >= Waffle.columns) {
     snakeHead.x = 0;
   }
   </code></pre>
 
   If you save these changes and reload the page, it won't look like anything has changed: the snake will continue to move to the right and wrap around the screen. But the difference is that the direction the snake moves isn't hard-coded anymore. We can now add some checks in `onKeyDown` to update the direction, based on classic WASD input.
 
-  <pre><code class="language-diff-javascript diff-highlight">Grid.onKeyDown(({ key }) => {
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onKeyDown(({ key }) => {
   - console.log(`pressed ${key}`);
   + if (key === 'w') {
   +   direction.x = 0;
@@ -173,14 +173,14 @@ content: |
   One thing you quickly notice is that if the snake moves off the right-hand side of the grid, it appears on the left, wrapping around. That doesn't happen on any of the other grid edges, because we started off by making the snake move _only_ to the right, and therefore only checked if it moved off the right-hand side. Let's add similar "wrapping" functionality to the other sides.
 
   <pre><code class="language-diff-javascript diff-highlight">// this check will "wrap" the snake around the screen
-  if (snakeHead.x >= Grid.columns) {
+  if (snakeHead.x >= Waffle.columns) {
     snakeHead.x = 0;
   + } else if (snakeHead.x < 0) {
-  +   snakeHead.x = Grid.columns - 1;
-  + } else if (snakeHead.y >= Grid.rows) {
+  +   snakeHead.x = Waffle.columns - 1;
+  + } else if (snakeHead.y >= Waffle.rows) {
   +   snakeHead.y = 0;
   + } else if (snakeHead.y < 0) {
-  +   snakeHead.y = Grid.rows - 1;
+  +   snakeHead.y = Waffle.rows - 1;
   + }
   </code></pre>
 
@@ -204,7 +204,7 @@ content: |
 
   Now we can write the code that randomly places apples in empty spaces around the grid.
 
-  <pre><code class="language-diff-javascript diff-highlight">const nextState = Grid.state;
+  <pre><code class="language-diff-javascript diff-highlight">const nextState = Waffle.state;
 
   // set the correct grid cells with the snake's body
   for (const {x, y} of snake) {
@@ -213,17 +213,17 @@ content: |
   +
   + // create 10 apples
   + for (let i = 0; i < 10; i += 1) {
-  +   let point = Grid.randomPoint;
+  +   let point = Waffle.randomPoint;
   +   // if random point is not empty, loop until an empty one is found
-  +   while (!Grid.isEmpty(nextState[point.x][point.y])) {
-  +     point = Grid.randomPoint;
+  +   while (!Waffle.isEmpty(nextState[point.x][point.y])) {
+  +     point = Waffle.randomPoint;
   +   }
   +
   +   nextState[point.x][point.y] = 'apple';
   + }
 
   // update the game state, which draws the snake
-  Grid.state = nextState;</code></pre>
+  Waffle.state = nextState;</code></pre>
 
   Reload, and you'll see apples randomly dotted around.
 
@@ -241,7 +241,7 @@ content: |
 
   + // this is tricky -- remove the last tail part if the next space is empty
   + // otherwise we can assume the snake hit an apple, and keep the tail
-  + if (Grid.isEmpty(nextState[snakeHead.x][snakeHead.y])) {
+  + if (Waffle.isEmpty(nextState[snakeHead.x][snakeHead.y])) {
     // remove the last tail segment
     snake.pop();
   + }
@@ -254,7 +254,7 @@ content: |
 
   The last rule we'll program in is that the snake can't touch its own body &mdash; no ouroboros-ing! We'll accomplish this by checking if the new head overlaps the body. If it does, then display a message and stop the update loop. Otherwise, continue as normal.
 
-  <pre><code class="language-diff-javascript diff-highlight">const nextState = Grid.state;
+  <pre><code class="language-diff-javascript diff-highlight">const nextState = Waffle.state;
   +
   + if (nextState[snakeHead.x][snakeHead.y] === 'snake') {
   +   delayedAlert('game over, man!');

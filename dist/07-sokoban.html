@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Game | Ganbaru Games</title>
-    
-    <meta name="description" content="Make a "Sokoban" game with GridJS">
+
+    <meta name="description" content="Make a "Sokoban" game with Waffle">
     <meta name="author" content="Nathan Demick">
 
     <meta property="og:title" content="Game" />
-    <meta property="og:description" content="Make a "Sokoban" game with GridJS" />
+    <meta property="og:description" content="Make a "Sokoban" game with Waffle" />
 
     <link rel="stylesheet" href="https://ganbaru.games/assets/stylesheets/main.css">
     <link rel="shortcut icon" href="https://ganbaru.games/assets/images/henohenomoheji.png" type="image/png">
@@ -25,25 +25,309 @@
       <h2>Game</h2>
 
       <section class="text">
-        <p>Ever since regular people have had casual access to computing resources, they have written game programs. <em>(insert aside about <a href="https://en.wikipedia.org/wiki/Spacewar!">Spacewar! on PDP-1</a>)</em> I’m sure we could discuss at length the psychology of play, and why electronic games are so compelling. My own theory is that writing game programs fulfills an innate creative need for world-building. There’s just something about setting up rules for an interactive environment, and seeing the simulation conform to those rules, that gives one a sense of power and achievement. Game programming falls on the rebellious side of the dichotomy of computing; resources are used for whimsy and fun, as opposed to Serious Business and Making Money (although sometimes these ideas intersect).</p>
+        <p><a href="https://en.wikipedia.org/wiki/Sokoban">Sokoban</a> is yet another classic casual game genre. You control a warehouse worker who must organize boxes by pushing them to certain locations. The difficulty is to not get a box stuck by pushing it against the wall or into a corner. As a kid, I played games with similar mechanics, such as <a href="https://en.wikipedia.org/wiki/Rodent's_Revenge">Rodent’s Revenge</a>. These sorts of games are easily made with Waffle, as they limit movement to within a grid. Let’s go ahead and figure out how to make a basic sokoban game.</p>
 
-<p>The explosion in popularity of the internet created a new platform for software. With the first generation of web browsers, these programs were fairly primitive — data needed to be saved and displayed by a web server, and any user interaction required a full page refresh cycle. I played a number of games that used this style.</p>
+<p>As always, <a href="https://github.com/endemic/waffle/releases/latest">download the Waffle source</a>, which has a <code>game.js</code> template file with some example code. You can then open the <code>index.html</code> file (<strong>File → Open File → index.html</strong>) in a browser and have the game run instantly.</p>
 
-<p>As JavaScript became standardized across browsers, more and more web software shifted computing responsibility from the “back-end” to the “front-end.” <em>(discuss Flash)</em> This included games, of course. One new web standard that was added to browsers was the <code>&lt;canvas&gt;</code> element, which lots of folks used for games. It basically offers a bitmap that can be drawn on programmatically. This is great for games, as it mimics what you might use in a computer game running “natively” — i.e. outside a web browser. The canvas can even be drawn on using 3D programming techniques, via WebGL.</p>
+<p>The template is set up to initialize a 10x10 grid. This is a reasonable size for a basic sokoban level, so we’ll keep those dimensions. The first step in making the game will be to draw walls in the level. You should know the drill by now — any string you store in the grid will be used as a CSS class in the resulting HTML. So any image you want to represent a game object should have a rule in the <code>main.css</code> file.</p>
 
-<p>The only problem with using <code>&lt;canvas&gt;</code> for a game is that you throw away two of the traditional building blocks of the web — HTML and CSS. I’ve always enjoyed (ab)using technology in ways unintended by the original use case, and want to merge two of my interests — games and web pages. One of the solutions I’ve found for this conundrum is to <em>keep</em> HTML and CSS, and use them for a game’s graphics. This simplifies a few things for the developer.</p>
+<pre><code class="language-diff-css diff-highlight">#grid {
+  /* omitted for brevity */
+
+  - .highlight {
+  -   background-color: blueviolet;
+  - }
+  + .wall {
+  +   background: url('wall.png') center/100%;
+  + }
+}</code></pre>
+
+<p>Make your own graphics if you want, otherwise you can <a href="assets/sokoban/images.zip">download some.</a>.</p>
+
+<p>Now we have to figure out what we want the level to look like. I guess normally you’d have some sort of fancy data structure for storing levels, but here we’re gonna just use a 2D array. One benefit of this is being able to edit the level directly in your source file. In this array, a space will be an empty area, and a <code>#</code> will be a wall. After the call to <code>Waffle.init</code>, add the level data.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">Waffle.init(rows, columns);
+
+// hard code the level
++ const level = [
++   ['#','#','#','#','#',' ',' ',' ',' ',' '],
++   ['#',' ',' ',' ','#',' ','#','#','#',' '],
++   ['#',' ',' ',' ','#',' ','#',' ','#',' '],
++   ['#',' ',' ',' ','#',' ','#',' ','#',' '],
++   ['#','#','#',' ','#','#','#',' ','#',' '],
++   [' ','#','#',' ',' ',' ',' ',' ','#',' '],
++   [' ','#',' ',' ',' ','#',' ',' ','#',' '],
++   [' ','#',' ',' ',' ','#','#','#','#',' '],
++   [' ','#','#','#','#','#',' ',' ',' ',' '],
++   [' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
++ ];</code></pre>
+
+<p>Now we need to take that data and display it in the game, by injecting it into the grid. We’re converting the <code>#</code> symbol into the string <code>'wall'</code>, just so that it’s easier to see how the level will look when each grid cell is a single character. To do that we’ll loop over each (x,y) position of the level data, and set the corresponding value in Waffle’s <code>state</code>. After the <code>level</code> variable, add the following:</p>
+
+<pre><code class="language-diff-javascript diff-highlight">+ const nextState = Waffle.state;
+
++ for (let x = 0; x &lt; Waffle.columns; x += 1) {
++   for (let y = 0; y &lt; Waffle.rows; y += 1) {
++     const cell = level[x][y];
++
++     // evaluate the simplifed text contents of the
++     // level data and set the state of the grid
++     switch (cell) {
++       case '#':
++         nextState[x][y] = 'wall';
++         break;
++   }
++ }
++
++ Waffle.state = nextState;</code></pre>
+
+<p>Save the <code>game.js</code> file and reload the <code>index.html</code> file in your browser, and you should see the level displayed!</p>
+
+<figure>
+  <img src="assets/sokoban/example_1.png" alt="walls created" />
+  <figcaption>walls created</figcaption>
+</figure>
+
+<p>But wait… something’s not quite right. We were expecting the level to look the same as what we created in the code, but it looks like it’s been rotated 90 degrees and flipped vertically. The reason behind this is because of the way we represent 2D arrays in code. Looping over the array twice with <code>x</code> and <code>y</code> variables accesses them like this:</p>
+
+<pre><code>
+  [
+    [x=0,y=0],[x=0,y=1],[x=0,y=2],[x=0,y=3],
+    [x=1,y=0],[x=1,y=1],[x=1,y=2],[x=1,y=3],
+    [x=2,y=0],[x=2,y=1],[x=2,y=2],[x=2,y=3],
+    [x=3,y=0],[x=3,y=1],[x=3,y=2],[x=3,y=3],
+  ]
+</code></pre>
+
+<p>You can see that this loop is the inverse of how we expect Cartesian coordinates to be represented. We can solve the problem in one of two ways.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">- for (let x = 0; x &lt; Waffle.columns; x += 1) {
+-   for (let y = 0; y &lt; Waffle.rows; y += 1) {
+// change the order of the loops
++ for (let y = 0; y &lt; Waffle.rows; y += 1) {
++   for (let x = 0; x &lt; Waffle.columns; x += 1) {
+-     const cell = level[x][y];
+// _OR_ change the order of the array indexing
++     const cell = level[y][x];
+
+    // evaluate the simplifed text contents of the
+    // level data and set the state of the grid
+    switch (cell) {
+      case '#':
+        nextState[x][y] = 'wall';
+        break;
+  }
+}</code></pre>
+
+<p>Waffle uses the first solution when mapping its <code>state</code> variable to the HTML on the page, so we can use <code>x</code> and <code>y</code> to access grid values in a more natural way.</p>
+
+<p>The next thing we can add is the player. We’ll take a page out of <a href="https://en.wikipedia.org/wiki/Roguelike">roguelike games</a> and use <code>@</code> to represent the player’s starting location in the level.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">const level = [
+  ['#','#','#','#','#',' ',' ',' ',' ',' '],
+- ['#',' ',' ',' ','#',' ','#','#','#',' '],
++ ['#','@',' ',' ','#',' ','#','#','#',' '],
+  ['#',' ',' ',' ','#',' ','#',' ','#',' '],
+  ['#',' ',' ',' ','#',' ','#',' ','#',' '],
+  ['#','#','#',' ','#','#','#',' ','#',' '],
+  [' ','#','#',' ',' ',' ',' ',' ','#',' '],
+  [' ','#',' ',' ',' ','#',' ',' ','#',' '],
+  [' ','#',' ',' ',' ','#','#','#','#',' '],
+  [' ','#','#','#','#','#',' ',' ',' ',' '],
+  [' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
+];</code></pre>
+
+<p>Now we need to handle the <code>@</code> value in the code that parses the level. We’ll also create a new variable, <code>player</code>, that is a reference to the player’s current position. It would be tedious if every time we wanted to move the player, we had to search the entire grid to find the cell that contained the <code>'player'</code> value.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">+ const player = {x: 0, y: 0};
++
+for (let y = 0; y &lt; Waffle.rows; y += 1) {
+  for (let x = 0; x &lt; Waffle.columns; x += 1) {
+    const cell = level[x][y];
+
+    // evaluate the simplifed text contents of the
+    // level data and set the state of the grid
+    switch (cell) {
+      case '#':
+        nextState[x][y] = 'wall';
+        break;
++     case '@':
++       nextState[x][y] = 'player';
++       player.x = x;
++       player.y = y;
++       break;
+  }
+}</code></pre>
+
+<p>Of course this means we also need to create a CSS rule to display the “player” graphic.</p>
+
+<pre><code class="language-diff-css diff-highlight">#grid {
+  /* omitted for brevity */
+
+  .wall {
+    background: url('wall.png') center/100%;
+  }
++ .player {
++   background: url('player.png') center/100%;
++ }
+}</code></pre>
+
+<hr />
 
 <ol>
-  <li>
-    <p>If you have a background in web development, HTML and CSS should be tools that you already know. Conversely, if you don’t have prior experience, learning these tools has real-world benefits outside of game-making — for example, my day job is in web development, which includes laying out user interfaces using HTML/CSS.</p>
-  </li>
-  <li>
-    <p>Loading game graphics can be handled by the browser. Define backgrounds for HTML elements in CSS, and the files are loaded automatically.</p>
-  </li>
-  <li>
-    <p>CSS transforms and transitions can be used to manipulate game objects, rather than needing to write or import your own tweening functions.</p>
-  </li>
+  <li>Draw walls</li>
+  <li>Draw player</li>
+  <li>Player movement</li>
+  <li>Draw boxes/goals</li>
+  <li>Move boxes</li>
+  <li>Win condition/reset</li>
 </ol>
+
+<p>```javascript
+const rows = 10;
+const columns = 10;</p>
+
+<p>Waffle.init(rows, columns);</p>
+
+<p>// hard code the level
+const level = [
+  [’#’,’#’,’#’,’#’,’#’,’ ‘,’ ‘,’ ‘,’ ‘,’ ‘],
+  [’#’,’@’,’ ‘,’ ‘,’#’,’ ‘,’#’,’#’,’#’,’ ‘],
+  [’#’,’ ‘,’B’,’B’,’#’,’ ‘,’#’,’x’,’#’,’ ‘],
+  [’#’,’ ‘,’B’,’ ‘,’#’,’ ‘,’#’,’x’,’#’,’ ‘],
+  [’#’,’#’,’#’,’ ‘,’#’,’#’,’#’,’x’,’#’,’ ‘],
+  [’ ‘,’#’,’#’,’ ‘,’ ‘,’ ‘,’ ‘,’ ‘,’#’,’ ‘],
+  [’ ‘,’#’,’ ‘,’ ‘,’ ‘,’#’,’ ‘,’ ‘,’#’,’ ‘],
+  [’ ‘,’#’,’ ‘,’ ‘,’ ‘,’#’,’#’,’#’,’#’,’ ‘],
+  [’ ‘,’#’,’#’,’#’,’#’,’#’,’ ‘,’ ‘,’ ‘,’ ‘],
+  [’ ‘,’ ‘,’ ‘,’ ‘,’ ‘,’ ‘,’ ‘,’ ‘,’ ‘,’ ‘],
+];</p>
+
+<p>const player = {x: 0, y: 0};</p>
+
+<p>// waffle is so simple that it doesn’t have a way to persist overlapping
+// objects. The moving object overwrites whatever was there previously. In sokoban,
+// this is a problem because both the player and boxes can move over top of box targets,
+// which need to re-appear if the player or box moves back off again. Therefore, we need
+// to store the location of targets in a separate data structure instead of just in <code>Waffle.state</code>
+const targets = [];</p>
+
+<p>const nextState = Waffle.state;</p>
+
+<p>for (let x = 0; x &lt; Waffle.columns; x += 1) {
+  for (let y = 0; y &lt; Waffle.rows; y += 1) {
+    // note the reversed order of x and y
+    // allows us to have a 2d array that looks the same in the code
+    const cell = level[y][x];</p>
+
+<pre><code>// evaluate the simplifed text contents of the level
+// and set the state of the grid
+switch (cell) {
+  case 'B':
+    nextState[x][y] = 'box';
+    break;
+  case '#':
+    nextState[x][y] = 'wall';
+    break;
+  case 'x':
+    nextState[x][y] = 'target';
+    targets.push({x, y});
+    break;
+  case '@':
+    nextState[x][y] = 'player';
+    player.x = x;
+    player.y = y;
+    break;
+}   } }
+</code></pre>
+
+<p>Waffle.state = nextState;</p>
+
+<p>Waffle.onKeyDown(({ key }) =&gt; {
+  const move = {x: 0, y: 0};</p>
+
+<p>switch (key) {
+    case ‘w’:
+      move.y -= 1;
+      break;
+    case ‘s’:
+      move.y += 1;
+      break;
+    case ‘a’:
+      move.x -= 1;
+      break;
+    case ‘d’:
+      move.x += 1;
+      break;
+  }</p>
+
+<p>const playerNext = {
+    x: player.x + move.x,
+    y: player.y + move.y
+  };</p>
+
+<p>const state = Waffle.state;</p>
+
+<p>// TODO: not sure this makes things clearer; uses scope access of <code>state</code> variable
+  const movePlayer = (destination) =&gt; {
+    // remove the player from the old position
+    state[player.x][player.y] = ‘’;</p>
+
+<pre><code>// update location data
+player.x = destination.x;
+player.y = destination.y;
+
+// put player in new position
+state[player.x][player.y] = 'player';   };
+</code></pre>
+
+<p>if (canMoveTo(playerNext)) {
+    movePlayer(playerNext);
+  } else if (state[playerNext.x][playerNext.y] === ‘box’) {</p>
+
+<pre><code>// figure out if the box is blocked or not
+const boxNext = {
+  x: playerNext.x + move.x,
+  y: playerNext.y + move.y
+};
+
+if (canMoveTo(boxNext)) {
+  // move the box
+  state[boxNext.x][boxNext.y] = 'box';
+
+  // the player will overwrite the box's previous position
+  movePlayer(playerNext);
+} else {
+  console.log(`Can't move box; blocked by ${state[boxNext.x][boxNext.y]}`);
+}   }
+</code></pre>
+
+<p>// ensure targets are re-displayed if player/box moves off them
+  for (const t of targets) {
+    if (Waffle.isEmpty(state[t.x][t.y])) {
+      state[t.x][t.y] = ‘target’;
+    }
+  }</p>
+
+<p>Waffle.state = state;</p>
+
+<p>if (hasWonGame()) {
+    alert(‘u win’);
+  }
+});</p>
+
+<p>const canMoveTo = (point) =&gt; {
+  const state = Waffle.state;</p>
+
+<p>return Waffle.isEmpty(state[point.x][point.y]) || state[point.x][point.y] === ‘target’;
+};</p>
+
+<p>const hasWonGame = () =&gt; {
+  const state = Waffle.state;</p>
+
+<p>return targets.every(t =&gt; state[t.x][t.y] === ‘box’);
+};
+```</p>
 
       </section>
 
@@ -68,7 +352,7 @@
       </p>
 
       <ul>
-        <li><a href="https://github.com/endemic/gridjs">Game making resources</a></li>
+        <li><a href="https://github.com/endemic/waffle">Game making resources</a></li>
         <li><a href="mailto:support@ganbarugames.com">Contact</a></li>
         <li><a href="/privacy.html" title="Privacy Policy">Privacy Policy</a></li>
       </ul>

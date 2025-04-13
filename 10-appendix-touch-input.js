@@ -1,4 +1,4 @@
-// TODO: put this stuff in grid.js
+// TODO: put this stuff in Waffle
 
 class SwipeExample {
   constructor() {

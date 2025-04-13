@@ -1,23 +1,23 @@
 title: Game &#35;4&#58; Knight's Tour
 author: Nathan Demick
-description: Make a "Knight's Tour" game with GridJS
+description: Make a "Knight's Tour" game with Waffle
 content: |
   I learned about [Knight's Tour](https://en.wikipedia.org/wiki/Knight%27s_tour) from [Steve Wozniak's autobiograhy](https://en.wikipedia.org/wiki/IWoz). He made a hardware version of the game when he was still a student, which I found pretty amazing. The basic gist is that a player tries to move a single chess knight to each square on an 8x8 chess board, but you can only land on each square once. The challenge comes from the wonky movement rules of the knight, which means you can get stuck pretty easily. Well, you had me at "8x8 chess board" &mdash; that's a grid! We can easily make a web version of this game by using a 2D array to keep track of the game's data.
 
-  [Download grid.js](https://github.com/endemic/gridjs/releases/latest), then edit `game.js` to create that 8x8 grid. The one bit of extra logic we'll run here is to fill the grid with alternating black and white tiles, in order to make it look like a chess board. Add the lines with a `+` in front, and remove lines prefixed by a `-`:
+  [Download Waffle](https://github.com/endemic/waffle/releases/latest), then edit `game.js` to create that 8x8 grid. The one bit of extra logic we'll run here is to fill the grid with alternating black and white tiles, in order to make it look like a chess board. Add the lines with a `+` in front, and remove lines prefixed by a `-`:
 
   <pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
   - const columns = 10;
   + const rows = 8;
   + const columns = 8;
 
-  Grid.init(rows, columns);
+  Waffle.init(rows, columns);
 
-  - Grid.onKeyDown(({ key }) => {
+  - Waffle.onKeyDown(({ key }) => {
   -   console.log(`pressed ${key}`);
   - });
 
-  + let newState = Grid.state;
+  + let newState = Waffle.state;
   +
   + // simple helper function to determine if a number is even or odd
   + const isEven = number => number % 2 === 0;
@@ -29,9 +29,9 @@ content: |
   +   }
   + }
   +
-  + Grid.state = newState;
+  + Waffle.state = newState;
 
-  Grid.onPointDown(({ x, y }) => {
+  Waffle.onPointDown(({ x, y }) => {
     //...</code></pre>
 
   Add the following CSS rules to the end of `main.css`:
@@ -57,22 +57,22 @@ content: |
   + .visited { background: limegreen; }
   + .knight { background: url('knight.png') center/100%; }</code></pre>
 
-  Download a copy of [`knight.png`](assets/knights-tour/knight.png) and put it in same folder as the rest of the GridJS files. Save the `game.js` and `main.css` files, and load `index.html` in your browser (**File &rarr; Open File &rarr; index.html**). You should see a page that displays a grid with a chessboard pattern.
+  Download a copy of [`knight.png`](assets/knights-tour/knight.png) and put it in same folder as the rest of the Waffle files. Save the `game.js` and `main.css` files, and load `index.html` in your browser (**File &rarr; Open File &rarr; index.html**). You should see a page that displays a grid with a chessboard pattern.
 
   <figure>
     <img src="assets/knights-tour/example_1.png" alt="image of chess board grid">
     <figcaption>the chess board!</figcaption>
   </figure>
 
-  We now need to handle user interactions. GridJS has a helper for this called `onPointDown` &mdash; this function will run some code whenever the player clicks or touches the touchscreen. The `game.js` file already has an example of how this helper can be used; we're going to delete some of that code and write our own. For this game, we'll let the player choose their own starting point, which means the first click will place the knight piece. We can keep track of the knight's position by using a local variable named, appropriately enough, `knight`.
+  We now need to handle user interactions. Waffle has a helper for this called `onPointDown` &mdash; this function will run some code whenever the player clicks or touches the touchscreen. The `game.js` file already has an example of how this helper can be used; we're going to delete some of that code and write our own. For this game, we'll let the player choose their own starting point, which means the first click will place the knight piece. We can keep track of the knight's position by using a local variable named, appropriately enough, `knight`.
 
   <pre><code class="language-diff-javascript diff-highlight">+ let knight;
   +
-  Grid.onPointDown(({ x, y }) => {
+  Waffle.onPointDown(({ x, y }) => {
     console.debug(`clicked grid cell (${x}, ${y})`);
 
   - /* replace this with your own code! */
-    const newState = Grid.state;
+    const newState = Waffle.state;
 
   + // save the knight's position
   + knight = {x, y};
@@ -80,13 +80,13 @@ content: |
   + // draw the knight on the grid
   + newState[knight.x][knight.y] = 'knight';
   +
-  - if (Grid.isEmpty(newState[x][y])) {
+  - if (Waffle.isEmpty(newState[x][y])) {
   -   newState[x][y] = 'highlight';
   - } else {
   -   newState[x][y] = '';
   - }
   -
-    Grid.state = newState;
+    Waffle.state = newState;
   });
   </code></pre>
 
@@ -99,10 +99,10 @@ content: |
 
   Kinda cool, but this isn't exactly the functionality that we want, which is to have a single knight move around the board. Let's update the code so that when a cell is clicked, the knight moves there, and the previous cell is marked as "visited" (the idea being that you can't land on the same spot twice).
 
-  <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }) => {
     console.debug(`clicked grid cell (${x}, ${y})`);
 
-    const newState = Grid.state;
+    const newState = Waffle.state;
 
   + // if the knight has already been placed on the grid...
   + if (knight) {
@@ -116,7 +116,7 @@ content: |
     // re-draw the knight on the grid
     newState[knight.x][knight.y] = 'knight';
 
-    Grid.state = newState;
+    Waffle.state = newState;
   });
   </code></pre>
 
@@ -158,7 +158,7 @@ content: |
 
   So what we need to do is check if the `allowedMoves` array contains (x, y) values that are equal to where the player clicked. Since the knight's position changes after each turn, it makes sense to take the example `allowedMoves` array and put it inside a function. The function can take the `{x, y}` position of the knight as an argument, and return the new list of allowed moves after each turn. Add this new code _outside_ of the `onPointDown` function.
 
-  <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }) => {
     // ...omitted for brevity
   });
 
@@ -179,16 +179,16 @@ content: |
   +     // below
   +     { x: knight.x - 1, y: knight.y + 2},
   +     { x: knight.x + 1, y: knight.y + 2},
-  +   ].filter(Grid.withinBounds);
+  +   ].filter(Waffle.withinBounds);
   + };
   </code></pre>
 
-  Note the use of the `Grid.withinBounds` helper function. What this does is ensure the (x, y) coordinates returned from this function are all within the boundaries of the grid. For example, if the knight is at (0, 0), some of the computed moves will be outside the grid, such as (-1, -2). Passing `Grid.withinBounds` to `filter` will discard those. We can then use this new function in `onPointDown` to see if the knight is allowed to move:
+  Note the use of the `Waffle.withinBounds` helper function. What this does is ensure the (x, y) coordinates returned from this function are all within the boundaries of the grid. For example, if the knight is at (0, 0), some of the computed moves will be outside the grid, such as (-1, -2). Passing `Waffle.withinBounds` to `filter` will discard those. We can then use this new function in `onPointDown` to see if the knight is allowed to move:
 
-  <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }) => {
     console.debug(`clicked grid cell (${x}, ${y})`);
 
-    const newState = Grid.state;
+    const newState = Waffle.state;
 
   - // if the knight has already been placed on the grid...
   - if (knight) {
@@ -216,16 +216,16 @@ content: |
   +   newState[knight.x][knight.y] = 'knight';
   + }
 
-    Grid.state = newState;
+    Waffle.state = newState;
   });
   </code></pre>
 
   Save and reload the page, then click around on the game board. Nothing happens. _What?_ If you open the browser console (**Tools &rarr; Browser Tools &rarr; Browser Console**), you'll see an error message pop up whenever you click: `Uncaught TypeError: knight is undefined`. The problem is that our previous code would _always_ set the knight's position, and now we're checking to see if a move is allowed based on the current position. Since `knight` is initially declared without a value (`undefined`), this means we need to add some special handling for the very first move of the game.
 
-  <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }) => {
     console.debug(`clicked grid cell (${x}, ${y})`);
 
-    const newState = Grid.state;
+    const newState = Waffle.state;
 
   + // handle condition of first move
   + if (!knight) {
@@ -248,7 +248,7 @@ content: |
       newState[knight.x][knight.y] = 'knight';
     }
 
-    Grid.state = newState;
+    Waffle.state = newState;
   });
   </code></pre>
 
@@ -262,7 +262,7 @@ content: |
   There are a few more features it would be good to add. If you've been observant, you'll notice that the knight can still move to previously visited spaces. This is actually pretty simple to implement, if we modify the `getAllowedMoves` function.
 
   <pre><code class="language-diff-javascript diff-highlight">const getAllowedMoves = (knight) => {
-  + const state = Grid.state;
+  + const state = Waffle.state;
 
     return [
       // above
@@ -280,7 +280,7 @@ content: |
       // below
       { x: knight.x - 1, y: knight.y + 2},
       { x: knight.x + 1, y: knight.y + 2},
-  + ].filter(Grid.withinBounds).filter(point => state[point.x][point.y] !== 'visited'); // can't move to a visited space
+  + ].filter(Waffle.withinBounds).filter(point => state[point.x][point.y] !== 'visited'); // can't move to a visited space
   };
   </code></pre>
 
@@ -293,10 +293,10 @@ content: |
   };
   +
   + const hasWonGame = () => {
-  +   const state = Grid.state;
+  +   const state = Waffle.state;
   +
-  +   for (let y = 0; y < Grid.rows; y += 1) {
-  +     for (let x = 0; x < Grid.columns; x += 1) {
+  +   for (let y = 0; y < Waffle.rows; y += 1) {
+  +     for (let x = 0; x < Waffle.columns; x += 1) {
   +       if (state[x][y] !== 'visited' && state[x][y] !== 'knight') {
   +         return false;
   +       }
@@ -310,10 +310,10 @@ content: |
 
   This method can then be used at the very end of the `onPointDown` method, to display a message to the player if they manage to traverse the entire board (using the `delayedAlert` function we created in the [first tutorial](01-tic-tac-toe.html#delayedAlert)).
 
-  <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }) => {
     // ...omitted for brevity
 
-    Grid.state = newState;
+    Waffle.state = newState;
 
   + if (hasWonGame()) {
   +   delayedAlert('Congratulations!');

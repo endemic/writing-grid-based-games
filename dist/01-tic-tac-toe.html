@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Game &#35;1&#58; Tic-Tac-Toe | Ganbaru Games</title>
-    
-    <meta name="description" content="A simple game of tic-tac-toe using gridjs">
+
+    <meta name="description" content="A simple game of tic-tac-toe using Waffle">
     <meta name="author" content="Nathan Demick">
 
     <meta property="og:title" content="Game &#35;1&#58; Tic-Tac-Toe" />
-    <meta property="og:description" content="A simple game of tic-tac-toe using gridjs" />
+    <meta property="og:description" content="A simple game of tic-tac-toe using Waffle" />
 
     <link rel="stylesheet" href="https://ganbaru.games/assets/stylesheets/main.css">
     <link rel="shortcut icon" href="https://ganbaru.games/assets/images/henohenomoheji.png" type="image/png">
@@ -25,51 +25,51 @@
       <h2>Game &#35;1&#58; Tic-Tac-Toe</h2>
 
       <section class="text">
-        <p>One of the simplest games you can play on a grid is tic-tac-toe: mark spaces in a 3x3 grid with <em>X</em> or <em>O</em>; the player who gets three in a row (horizontally, vertically, or diagonally) wins. Let’s program a simple version of the game using GridJS. This will give a good introduction to some recurring concepts that you can use to build other games in the future.</p>
+        <p>One of the simplest games you can play on a grid is tic-tac-toe: mark spaces in a 3x3 grid with <em>X</em> or <em>O</em>; the player who gets three in a row (horizontally, vertically, or diagonally) wins. Let’s program a simple version of the game using Waffle. This will give a good introduction to some recurring concepts that you can use to build other games in the future.</p>
 
-<p>First, <a href="https://github.com/endemic/gridjs/releases/latest">download GridJS</a>, which includes an <code>index.html</code> file that automatically loads the necessary JavaScript and CSS files. Next, open the <code>game.js</code> file in a text editor; you’ll see that there is some example code there already which initializes a 10x10 grid, and sets up a simple event listener to toggle grid cell background colors. The first thing we can do is change the grid size to a 3x3 board.</p>
+<p>First, <a href="https://github.com/endemic/waffle/releases/latest">download Waffle</a>, which includes an <code>index.html</code> file that automatically loads the necessary JavaScript and CSS files. Next, open the <code>game.js</code> file in a text editor; you’ll see that there is some example code there already which initializes a 10x10 grid, and sets up a simple event listener to toggle grid cell background colors. The first thing we can do is change the grid size to a 3x3 board.</p>
 
 <pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
 - const columns = 10;
 + const rows = 3;
 + const columns = 3;
 
-Grid.init(rows, columns);</code></pre>
+Waffle.init(rows, columns);</code></pre>
 
 <p>For this version of the game, we’ll keep things simple — on an empty game board, the first click (or tap) on an empty square will place an <em>X</em>, the second will place an <em>O</em>, and so on. The example code already has set up an <code>onPointDown</code> function, which is run whenever a player clicks or taps on the game board. It provides us with the Cartesian coordinates of the clicked square. We can modify this code slightly to place <em>X</em> and <em>O</em> graphics.</p>
 
-<pre><code class="language-diff-javascript diff-highlight">Grid.init(rows, columns);
+<pre><code class="language-diff-javascript diff-highlight">Waffle.init(rows, columns);
 
 + // start by placing "X"
 + let player = 'x';
 
-Grid.onPointDown(({ x, y }) =&gt; {
+Waffle.onPointDown(({ x, y }) =&gt; {
 -   console.debug(`clicked grid cell (${x}, ${y})`);
 
 -   /* replace this with your own code! */
-  const nextState = Grid.state;
+  const nextState = Waffle.state;
 
 +   // do nothing if a player clicks on a square that's already filled
-+   if (!Grid.isEmpty(nextState[x][y])) {
++   if (!Waffle.isEmpty(nextState[x][y])) {
 +     return;
 +   }
 +
 +   nextState[x][y] = player;
 
--   if (Grid.isEmpty(nextState[x][y])) {
+-   if (Waffle.isEmpty(nextState[x][y])) {
 -      nextState[x][y] = 'highlight';
 -   } else {
 -     nextState[x][y] = '';
 -   }
 
--   if (Grid.isEmpty(nextState[x][y])) {
+-   if (Waffle.isEmpty(nextState[x][y])) {
 -     nextState[x][y] = player;
 -   }
 
-  Grid.state = nextState;
+  Waffle.state = nextState;
 });</code></pre>
 
-<p>If you save the <code>game.js</code> file and load <code>index.html</code> in a browser (<strong>File → Open File → index.html</strong>), you should see a 3x3 grid in the center of the page. However, clicking squares inside doesn’t seem to do anything. That’s because GridJS uses CSS classes to apply styling to each square. The page looks for a class style of <code>.x</code> inside of <code>main.css</code>, but it’s not there. Let’s add it now. Make your own graphic files to represent an <em>X</em> and <em>O</em>, or else download some samples <a href="assets/tic-tac-toe/images.zip">here</a>. Then add the following at the bottom of <code>main.css</code>:</p>
+<p>If you save the <code>game.js</code> file and load <code>index.html</code> in a browser (<strong>File → Open File → index.html</strong>), you should see a 3x3 grid in the center of the page. However, clicking squares inside doesn’t seem to do anything. That’s because Waffle uses CSS classes to apply styling to each square. The page looks for a class style of <code>.x</code> inside of <code>main.css</code>, but it’s not there. Let’s add it now. Make your own graphic files to represent an <em>X</em> and <em>O</em>, or else download some samples <a href="assets/tic-tac-toe/images.zip">here</a>. Then add the following at the bottom of <code>main.css</code>:</p>
 
 <pre><code class="language-diff-css diff-highlight">#grid {
   /* ... */
@@ -89,9 +89,9 @@ Grid.onPointDown(({ x, y }) =&gt; {
   <figcaption>placing Xs for player 1</figcaption>
 </figure>
 
-<p>However, it’s not actually a game of tic-tac-toe yet, since the second player needs to be able to add marks to the board. We can make this happen by toggling the value of the <code>player</code> variable between <code>x</code> and <code>o</code>. After the call to <code>Grid.state = nextState;</code>, add the following condition:</p>
+<p>However, it’s not actually a game of tic-tac-toe yet, since the second player needs to be able to add marks to the board. We can make this happen by toggling the value of the <code>player</code> variable between <code>x</code> and <code>o</code>. After the call to <code>Waffle.state = nextState;</code>, add the following condition:</p>
 
-<pre><code class="language-diff-javascript diff-highlight">Grid.state = nextState;
+<pre><code class="language-diff-javascript diff-highlight">Waffle.state = nextState;
 
 + // switch players
 + if (player === 'x') {
@@ -118,30 +118,30 @@ Grid.onPointDown(({ x, y }) =&gt; {
 
 <p>In total, there are eight ways to win: fill in a column (3), a row (3), or one of the diagonals (2). We can make a list of each of these valid win conditions, and then loop through the list, checking the value of each square in the grid.</p>
 
-<pre><code class="language-diff-javascript diff-highlight">Grid.state = nextState;
+<pre><code class="language-diff-javascript diff-highlight">Waffle.state = nextState;
 
 + const winPositions = [
 +   [{x: 0, y: 0}, {x: 1, y: 0}, {x: 2, y: 0}], // row 1
 +   [{x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}], // row 2
 +   [{x: 0, y: 2}, {x: 1, y: 2}, {x: 2, y: 2}], // row 3
-+ 
++
 +   [{x: 0, y: 0}, {x: 0, y: 1}, {x: 0, y: 2}], // column 1
 +   [{x: 1, y: 0}, {x: 1, y: 1}, {x: 1, y: 2}], // column 2
 +   [{x: 2, y: 0}, {x: 2, y: 1}, {x: 2, y: 2}], // column 3
-+ 
++
 +   [{x: 0, y: 0}, {x: 1, y: 1}, {x: 2, y: 2}], // diagonal 1
 +   [{x: 0, y: 2}, {x: 1, y: 1}, {x: 2, y: 0}], // diagonal 2
 + ];
-+ 
++
 + for (const group of winPositions) {
 +   let winner;
-+ 
++
 +   if (group.every(square =&gt; nextState[square.x][square.y] === 'x')) {
 +     winner = 'X';
 +   } else if (group.every(square =&gt; nextState[square.x][square.y] === 'o')) {
 +     winner = 'O';
 +   }
-+ 
++
 +   if (winner) {
 +     alert(`Player "${winner}" wins!`);
 +   }
@@ -170,7 +170,7 @@ if (player === 'x') {</code></pre>
 + for (let x = 0; x &lt; columns; x += 1) {
 +   for (let y = 0; y &lt; rows; y += 1) {
 +     // if we find any empty square, it means the game isn't over yet
-+     if (Grid.isEmpty(nextState[x][y])) {
++     if (Waffle.isEmpty(nextState[x][y])) {
 +       tieGame = false;
 +     }
 +   }
@@ -193,7 +193,7 @@ if (player === 'x') {</code></pre>
 <pre><code class="language-diff-javascript diff-highlight">let player = 'x';
 + let gameOver = false;
 
-Grid.onPointDown(({ x, y }) =&gt; {</code></pre>
+Waffle.onPointDown(({ x, y }) =&gt; {</code></pre>
 
 <p>We now need to set that variable to <code>true</code> if one player wins, or if the game is tied.</p>
 
@@ -211,16 +211,16 @@ Grid.onPointDown(({ x, y }) =&gt; {</code></pre>
 
 <p>Finally, add a block in the <code>onPointDown</code> handler to check if the game is over, and if so, reset.</p>
 
-<pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) =&gt; {
+<pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }) =&gt; {
 + if (gameOver) {
 +   // reset the game
 +   gameOver = false;
 +   player = 'x';
-+   Grid.fill('');
++   Waffle.fill('');
 +   return;
 + }
 
-  const nextState = Grid.state;</code></pre>
+  const nextState = Waffle.state;</code></pre>
 
 <figure>
   <img src="assets/tic-tac-toe/example_5.gif" alt="reset after game over" />
@@ -265,7 +265,7 @@ Grid.onPointDown(({ x, y }) =&gt; {</code></pre>
       </p>
 
       <ul>
-        <li><a href="https://github.com/endemic/gridjs">Game making resources</a></li>
+        <li><a href="https://github.com/endemic/waffle">Game making resources</a></li>
         <li><a href="mailto:support@ganbarugames.com">Contact</a></li>
         <li><a href="/privacy.html" title="Privacy Policy">Privacy Policy</a></li>
       </ul>

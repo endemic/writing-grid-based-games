@@ -1,6 +1,6 @@
 title: Game #5: Minesweeper
 author: Nathan Demick
-description: Make a "Minesweeper" game with GridJS
+description: Make a "Minesweeper" game with Waffle
 content: |
   One of the classic time-wasting games that lots of people have fond memories of is Minesweeper; particularly the [Microsoft version](https://en.wikipedia.org/wiki/Microsoft_Minesweeper). Since it was included in Windows 3.1, it was one of those games that you could always count on when you might have access to an unfamiliar PC. Although, I have a personal confession: I always played Solitaire or Hearts, rather than Minesweeper. I never took the time to really learn how to play the game! Nevertheless, Minesweeper is a classic example of a grid-based game, and one that is a great candidate for re-implementing yourself.
 
@@ -20,29 +20,29 @@ content: |
     const rows = 10;
     const columns = 10;
 
-    Grid.init(rows, columns);
+    Waffle.init(rows, columns);
 
     // minesweeper has two grids used to hold data
     // 1. what's visible to the player (`displayState`)
     // 2. position of the mines/hints (`mineState`)
 
     // initialize the display grid with `unknown`
-    const displayState = Grid.fill(Grid.state, 'unknown');
+    const displayState = Waffle.fill(Waffle.state, 'unknown');
 
     // update the visible grid
-    Grid.state = displayState;
+    Waffle.state = displayState;
 
     // initialize the mine/hint grid as `empty`
-    const mineState = Grid.fill(Grid.state, 'empty');
+    const mineState = Waffle.fill(Waffle.state, 'empty');
 
     // more mines == harder
     const mineCount = 10;
 
     // initialize the mines/hints board first
     for (let i = 0; i < mineCount; i += 1) {
-      let p = Grid.randomPoint;
-      while (!Grid.isEmpty(mineState[p.x][p.y])) {
-        p = Grid.randomPoint;
+      let p = Waffle.randomPoint;
+      while (!Waffle.isEmpty(mineState[p.x][p.y])) {
+        p = Waffle.randomPoint;
       }
       mineState[p.x][p.y] = 'mine';
     }
@@ -59,7 +59,7 @@ content: |
         }
 
         // Find the number of mines contained in neighboring cells
-        const hint = Grid.getNeighbors({ x, y })                           // gets all valid, in-bounds (x, y) positions of neighbors
+        const hint = Waffle.getNeighbors({ x, y })                           // gets all valid, in-bounds (x, y) positions of neighbors
                           .filter(({ x, y }) => mineState[x][y] === 'mine') // keep the (x, y) values that represent mines
                           .length;                                          // count how many there are
 
@@ -84,14 +84,14 @@ content: |
   ```
 
   ```
-  Grid.onPointDown(({x, y}) => {
+  Waffle.onPointDown(({x, y}) => {
     if (mineState[x][y] === 'mine') {
       // u lose
     }
 
-    const nextState = reveal({x, y}, Grid.state);
+    const nextState = reveal({x, y}, Waffle.state);
 
-    Grid.state = nextState;
+    Waffle.state = nextState;
 
     if (hasWonGame()) {
       // u win

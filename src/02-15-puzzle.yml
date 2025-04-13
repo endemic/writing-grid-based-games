@@ -1,27 +1,27 @@
 title: Game &#35;2&#58; 15 Puzzle
 author: Nathan Demick
-description: Make a "15 Puzzle" game with GridJS
+description: Make a "15 Puzzle" game with Waffle
 content: |
   If you've ever played around with [old versions of Mac OS](https://infinitemac.org/), you'll be familiar with the concept of "desk accessories." These were small programs that could run alongside the currently running main app (the original Mac OS could only run one program at a time). One of the desk accessories was an implementation of the classic "[15 puzzle](https://en.wikipedia.org/wiki/15_puzzle)", programmed by [Andy Hertzfeld](https://www.folklore.org/StoryView.py?project=Macintosh&story=Puzzle.txt). Another example of this type of puzzle is an [easter egg](https://finalfantasy.fandom.com/wiki/15_Puzzle) in the classic NES game, Final Fantasy.
 
   This sort of game is a perfect candidate for a grid, and is an especially good one to start off with. The puzzle board can be represented as a 4x4 grid, with each cell containing a value from 1 &mdash; 16 (16 being the "empty" space). The grid can be initialized randomly, then play occurs by clicking or tapping a tile that is next to the empty space. The tile then moves into the empty spot; the game continues until all the tiles are sorted from low to high.
 
-  Setup is simple &mdash; we have a list of strings that represent each tile, and randomly insert them into the 4x4 "state" array. Download the [grid.js project template](https://github.com/endemic/gridjs/releases/latest) and make these changes at the start of the `game.js` file:
+  Setup is simple &mdash; we have a list of strings that represent each tile, and randomly insert them into the 4x4 "state" array. Download the [Waffle project template](https://github.com/endemic/waffle/releases/latest) and make these changes at the start of the `game.js` file:
 
   <pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
   - const columns = 10;
   + const rows = 4;
   + const columns = 4;
 
-  Grid.init(rows, columns);
+  Waffle.init(rows, columns);
 
   + let tiles = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'empty'];
-  + 
+  +
   + // (randomly) initialize the grid with all of the tile values
-  + let nextState = Grid.state;
+  + let nextState = Waffle.state;
 
-  + for (let y = 0; y < Grid.rows; y += 1) {
-  +   for (let x = 0; x < Grid.columns; x += 1) {
+  + for (let y = 0; y < Waffle.rows; y += 1) {
+  +   for (let x = 0; x < Waffle.columns; x += 1) {
   +     // choose a random value from the remaining tiles
   +     const randomIndex = Math.floor(Math.random() * tiles.length);
   +
@@ -30,11 +30,11 @@ content: |
   +     nextState[x][y] = tiles.splice(randomIndex, 1)[0];
   +   }
   + }
-  + 
+  +
   + // update the game state
-  + Grid.state = nextState;
+  + Waffle.state = nextState;
 
-  Grid.onKeyDown(({ key }) => {</code></pre>
+  Waffle.onKeyDown(({ key }) => {</code></pre>
 
   Add the following at the end of the `main.css` stylesheet. These class names match the strings that we used to represent each tile. So when a grid cell has a value of `one`, then the `.one` CSS rule gets applied to it. This list of rules specifies the path to a background image file, and says that it should be centered and take up 100% of the available space. You can either make your own numbered tile images, or [download some](assets/puzzle/images.zip). Make sure to put them in a subdirectory named `images`.
 
@@ -65,28 +65,28 @@ content: |
 
   At this point, we've got the core of the game set up. A logical next step is to add support for user interaction. For browser games, this can be handled by a JavaScript event listener. Every interaction that a user does within the context of a web page (moving a mouse, clicking, tapping) can get a JavaScript function attached to it, so that game logic can be executed. In this case, we want to know when a player clicks (or taps) on the game grid; the idea being that if they tap on a tile that's next to the empty spot, the tapped tile moves.
 
-  Grid.js has helper functions that try to abstract away some of the garbage that we don't care about. The `game.js` file in the project template already has an example of one of them: `Grid.onPointDown`. This function takes another function as an argument, which passes in an object with `x` and `y` keys. These are the Cartesian coordinates of the tile on the grid that the user clicked. Delete some of the existing code like so:
+  Waffle.js has helper functions that try to abstract away some of the garbage that we don't care about. The `game.js` file in the project template already has an example of one of them: `Waffle.onPointDown`. This function takes another function as an argument, which passes in an object with `x` and `y` keys. These are the Cartesian coordinates of the tile on the grid that the user clicked. Delete some of the existing code like so:
 
   <pre><code class="language-diff-javascript diff-highlight">// update the game state
-  Grid.update(nextState);
+  Waffle.update(nextState);
 
-  - Grid.onKeyDown(({ key }) => {
+  - Waffle.onKeyDown(({ key }) => {
   -   console.log(`pressed ${key}`);
   - });
 
-  Grid.onPointDown(({ x, y }) => {
+  Waffle.onPointDown(({ x, y }) => {
     console.debug(`clicked grid cell (${x}, ${y})`);
 
   - /* replace this with your own code! */
-  - const nextState = Grid.state;
-  - 
-  - if (Grid.isEmpty(nextState[x][y])) {
+  - const nextState = Waffle.state;
+  -
+  - if (Waffle.isEmpty(nextState[x][y])) {
   -   nextState[x][y] = 'highlight';
   - } else {
   -   nextState[x][y] = '';
   - }
-  - 
-  - Grid.state = nextState;
+  -
+  - Waffle.state = nextState;
   });
   </code></pre>
 
@@ -98,26 +98,26 @@ content: |
   [ ][*][ ][ ]
   </code></pre>
 
-  Grid.js has yet another "helper" function that can get the `(x, y)` values of those neighbors &mdash; named, appropriately enough, `Grid.getNeighbors`. It will return an array of the four neighboring cells. Note however that it won't return cells that are outside the bounds of the grid (for example, if you click in a corner). We can run this function when a player clicks the grid, then check if any of the neighboring tiles are empty. If one of them is, we will swap values between that empty tile and the one the player touched. This gives the illusion of tiles sliding around the grid.
+  Waffle.js has yet another "helper" function that can get the `(x, y)` values of those neighbors &mdash; named, appropriately enough, `Waffle.getNeighbors`. It will return an array of the four neighboring cells. Note however that it won't return cells that are outside the bounds of the grid (for example, if you click in a corner). We can run this function when a player clicks the grid, then check if any of the neighboring tiles are empty. If one of them is, we will swap values between that empty tile and the one the player touched. This gives the illusion of tiles sliding around the grid.
 
-  <pre><code class="language-diff-javascript diff-highlight">Grid.onPointDown(({ x, y }) => {
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }) => {
     console.debug(`clicked grid cell (${x}, ${y})`);
 
-  + const nextState = Grid.state;
-  + const neighbors = Grid.getNeighbors({ x, y });
-  + 
+  + const nextState = Waffle.state;
+  + const neighbors = Waffle.getNeighbors({ x, y });
+  +
   + // check each neighboring cell
   + for (let i = 0; i < neighbors.length; i += 1) {
   +   const neighbor = neighbors[i];
-  + 
+  +
   +   if (nextState[neighbor.x][neighbor.y] === 'empty') {
   +     // if a neighboring cell is empty, swap it with the one that was clicked
   +     nextState[neighbor.x][neighbor.y] = nextState[x][y];
   +     nextState[x][y] = 'empty';
-  + 
+  +
   +     // show the change
-  +     Grid.state = nextState;
-  + 
+  +     Waffle.state = nextState;
+  +
   +     // we don't need to check any of the other neighbors
   +     // once we've found an empty cell, so can break out of the loop
   +     break;
@@ -129,7 +129,7 @@ content: |
   Save the `game.js` file and reload the page. You should now be able to click numbers next to the empty cell, and watch them move around. This is all the functionality that is required to successfully solve the puzzle! However, it would be nice to provide the player some sort of confirmation that they finished the game. To that end, we can write up a function that checks whether or not the contents of each grid cell is sorted. A quick way to do this is to make an array of strings with the tile values (similar to the one we used to initialize the game board), then compare the contents of each grid cell with the corresponding value of an incrementing index. For example, the cell at (0, 0) should be `one`, the cell at (1, 0) should be `two`, etc. Add the following function anywhere in `game.js`:
 
   <pre><code class="language-diff-javascript diff-highlight">+ const hasWonGame = () => {
-  +   const state = Grid.state;
+  +   const state = Waffle.state;
   +   const tiles = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'empty'];
   +
   +   // iterate through the rows/columns and expect the value of each cell to match
@@ -140,8 +140,8 @@ content: |
   +   // [ 9][10][11][12]
   +   // [13][14][15][16]
   +   let index = 0;
-  +   for (let y = 0; y < Grid.rows; y += 1) {
-  +     for (let x = 0; x < Grid.columns; x += 1) {
+  +   for (let y = 0; y < Waffle.rows; y += 1) {
+  +     for (let x = 0; x < Waffle.columns; x += 1) {
   +       if (state[x][y] !== tiles[index]) {
   +         console.debug(`${tiles[index]} is not in the right position`);
   +         return false;
@@ -155,14 +155,14 @@ content: |
   + };
   </code></pre>
 
-  We can now use this function at the end of `Grid.onPointDown` to show an alert popup when the player solves the puzzle:
+  We can now use this function at the end of `Waffle.onPointDown` to show an alert popup when the player solves the puzzle:
 
   <pre><code class="language-diff-javascript diff-highlight">      // we don't need to check any of the other neighbors
         // once we've found an empty cell, so can break out of the loop
         break;
       }
     }
-  +  
+  +
   + if (hasWonGame()) {
   +   alert('Congratulations, a winner is you!');
   + }
@@ -183,5 +183,5 @@ content: |
   +   // your logic goes here
   + };
   +
-  + Grid.onKeyDown(reset);
+  + Waffle.onKeyDown(reset);
   </code></pre>
