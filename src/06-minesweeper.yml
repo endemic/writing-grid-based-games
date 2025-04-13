@@ -36,42 +36,45 @@ content: |
   + .six { background-image: url('images/six.png'); }
   }</code></pre>
 
-   ```css
 
-  ```
+  Now that these CSS classes have been defined, we can set the value of a grid cell to `five` (for example), and have the associated image file show up in the right place. So what we'll do now is set up the two grids for the game, the "visual" grid (to show the current state of the game) and the "data" grid (holds locations of mines and hints).
+
+  The visual grid is easy to set up &mdash; when the game first starts, no mines have been revealed yet, so all the squares can be marked as `unknown`.
+
+  <pre><code class="language-diff-javascript diff-highlight">+ // change these values to make a larger/smaller game board
+  const rows = 10;
+  const columns = 10;
+
+  Waffle.init(rows, columns);
+
+  + // initialize the visual grid with `unknown`
+  + Waffle.fill('unknown');
+  </code></pre>
+
+  <!-- TODO init the visual grid _LAST_ -->
+
+  The data grid is also relatively easy to create &mdash; we can copy the 10x10 grid used by the visual grid, and overwrite its values. We'll start by randomly placing some mines in the grid, by writing the value `mine` to the appropriate grid index. This code chooses a random point in the grid, and tries to put a mine there. If that point already has something in it, we loop until we find an empty space.
+
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.fill('unknown');
+
+  + const mines = Waffle.state;
+
+  + // more mines == harder
+  + const mineCount = 10;
+
+  + // randomly place the mines
+  + for (let i = 0; i < mineCount; i += 1) {
+  +   let p = Waffle.randomPoint;
+
+  +   while (!Waffle.isEmpty(mines[p.x][p.y])) {
+  +     p = Waffle.randomPoint;
+  +   }
+
+  +   mines[p.x][p.y] = 'mine';
+  + }
+  </code></pre>
 
 
-  ```javascript
-  const init = () => {
-    // change these values to make a larger/smaller game board
-    const rows = 10;
-    const columns = 10;
-
-    Waffle.init(rows, columns);
-
-    // minesweeper has two grids used to hold data
-    // 1. what's visible to the player (`displayState`)
-    // 2. position of the mines/hints (`mineState`)
-
-    // initialize the display grid with `unknown`
-    Waffle.fill('unknown');
-
-    // copy Waffle's 10x10 array; use to store mine locations
-    const mines = Waffle.state;
-
-    // more mines == harder
-    const mineCount = 10;
-
-    // randomly place the mines
-    for (let i = 0; i < mineCount; i += 1) {
-      let p = Waffle.randomPoint;
-
-      while (!Waffle.isEmpty(mines[p.x][p.y])) {
-        p = Waffle.randomPoint;
-      }
-
-      mines[p.x][p.y] = 'mine';
-    }
 
     // Now that mines are placed, loop through to determine
     // numeric hints. Note the inverted x/y loops
