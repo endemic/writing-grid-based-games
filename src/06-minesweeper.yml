@@ -6,6 +6,8 @@ content: |
 
   As far as the rules go, the game is actually pretty simple. You've got a grid, with randomly placed "mines." The mines are hidden by an overlay. Clicking one of the hidden grid cells will reveal what's underneath. If it's a mine, you lose. If it's a number, that means there are that many mines in the eight neighboring spaces. If it's blank, then all neighboring blank spaces are revealed. The gist is to try to reveal the game state by logically using the clues.
 
+  Making a version of Minesweeper with Waffle uses two grid "layers." The first grid is what's actually displayed to the player -- basically storing which "unknown" spaces have been clicked. The second grid stores the location of the mines and hints. For a simple 5x5 game board, the following is a representation of what the `mines` grid would look like.
+
   ```
   [1][1][1][ ][ ]
   [1][*][2][ ][ ]
@@ -13,6 +15,31 @@ content: |
   [ ][1][1][2][1]
   [ ][ ][ ][1][*]
   ```
+
+  We'll start by making a 10x10 version of the game; increasing the board size can be left as an exercise for the reader. The first step is to [download Waffle](https://github.com/endemic/waffle/releases/latest) and open up `main.css`. We'll go ahead and add graphics for the various game objects that we plan to use in the game.
+
+  <pre><code class="language-diff-css diff-highlight">#grid {
+    /* ... */
+
+  -  .highlight {
+  -    background-color: blueviolet;
+  -  }
+
+  + .unknown { background-image: url('images/unknown.png'); }
+  + .mine { background-image: url('images/mine.png'); }
+  + .empty { background-image: url('images/empty.png'); }
+  + .one { background-image: url('images/one.png'); }
+  + .two { background-image: url('images/two.png'); }
+  + .three { background-image: url('images/three.png'); }
+  + .four { background-image: url('images/four.png'); }
+  + .five { background-image: url('images/five.png'); }
+  + .six { background-image: url('images/six.png'); }
+  }</code></pre>
+
+   ```css
+
+  ```
+
 
   ```javascript
   const init = () => {
@@ -27,61 +54,57 @@ content: |
     // 2. position of the mines/hints (`mineState`)
 
     // initialize the display grid with `unknown`
-    const displayState = Waffle.fill(Waffle.state, 'unknown');
+    Waffle.fill('unknown');
 
-    // update the visible grid
-    Waffle.state = displayState;
-
-    // initialize the mine/hint grid as `empty`
-    const mineState = Waffle.fill(Waffle.state, 'empty');
+    // copy Waffle's 10x10 array; use to store mine locations
+    const mines = Waffle.state;
 
     // more mines == harder
     const mineCount = 10;
 
-    // initialize the mines/hints board first
+    // randomly place the mines
     for (let i = 0; i < mineCount; i += 1) {
       let p = Waffle.randomPoint;
-      while (!Waffle.isEmpty(mineState[p.x][p.y])) {
+
+      while (!Waffle.isEmpty(mines[p.x][p.y])) {
         p = Waffle.randomPoint;
       }
-      mineState[p.x][p.y] = 'mine';
+
+      mines[p.x][p.y] = 'mine';
     }
 
-    // Go through the `mineState` array a second time, in order
-    // to insert numeric hint values; for each (x, y) position,
-    // check the 8 surrounding grid cells
+    // Now that mines are placed, loop through to determine
+    // numeric hints. Note the inverted x/y loops
     for (let y = 0; y < rows; y += 1) {
       for (let x = 0; x < columns; x += 1) {
 
         // Skip cells that contain mines
-        if (mineState[x][y] === 'mine') {
-            continue;
+        if (mines[x][y] === 'mine') {
+          continue;
         }
 
         // Find the number of mines contained in neighboring cells
-        const hint = Waffle.getNeighbors({ x, y })                           // gets all valid, in-bounds (x, y) positions of neighbors
-                          .filter(({ x, y }) => mineState[x][y] === 'mine') // keep the (x, y) values that represent mines
+        const hint = Waffle.getNeighbors({ x, y }, true)     // positions of 8 surrounding spaces
+                          .filter(({ x, y }) => mines[x][y] === 'mine') // keep the spaces that have mines
                           .length;                                          // count how many there are
 
-        // now we can display that number; represents how many mines surround the square
-        mineState[x][y] = hint;
+        const numberMap = {
+          0: 'empty',
+          1: 'one',
+          2: 'two',
+          3: 'three',
+          4: 'four',
+          5: 'five',
+          6: 'sixe',
+        };
+
+        // now we can store the hint number; aka how many mines surround the square
+        mines[x][y] = numberMap[hint];
       }
     }
   ```
 
-  ```css
-  .unknown { background-image: url('images/unknown.png'); }
-  .flag { background-image: url('images/flag.png'); }
 
-  .mine { background-image: url('images/mine.png'); }
-  .empty { background-image: url('images/empty.png'); }
-  .one { background-image: url('images/one.png'); }
-  .two { background-image: url('images/two.png'); }
-  .three { background-image: url('images/three.png'); }
-  .four { background-image: url('images/four.png'); }
-  .five { background-image: url('images/five.png'); }
-  .six { background-image: url('images/six.png'); }
-  ```
 
   ```
   Waffle.onPointDown(({x, y}) => {
