@@ -39,23 +39,9 @@ content: |
 
   Now that these CSS classes have been defined, we can set the value of a grid cell to `five` (for example), and have the associated image file show up in the right place. So what we'll do now is set up the two grids for the game, the "visual" grid (to show the current state of the game) and the "data" grid (holds locations of mines and hints).
 
-  The visual grid is easy to set up &mdash; when the game first starts, no mines have been revealed yet, so all the squares can be marked as `unknown`.
+  We can set up the data grid after the call to `Waffle.init`; we can copy the 10x10 grid used by the visual grid, and overwrite its values. We'll start by randomly placing some mines in the grid, by writing the value `mine` to the appropriate grid index. This code chooses a random point in the grid, and tries to put a mine there. If that point already has something in it, we loop until we find an empty space.
 
-  <pre><code class="language-diff-javascript diff-highlight">+ // change these values to make a larger/smaller game board
-  const rows = 10;
-  const columns = 10;
-
-  Waffle.init(rows, columns);
-
-  + // initialize the visual grid with `unknown`
-  + Waffle.fill('unknown');
-  </code></pre>
-
-  <!-- TODO init the visual grid _LAST_ -->
-
-  The data grid is also relatively easy to create &mdash; we can copy the 10x10 grid used by the visual grid, and overwrite its values. We'll start by randomly placing some mines in the grid, by writing the value `mine` to the appropriate grid index. This code chooses a random point in the grid, and tries to put a mine there. If that point already has something in it, we loop until we find an empty space.
-
-  <pre><code class="language-diff-javascript diff-highlight">Waffle.fill('unknown');
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.init(rows, columns);
 
   + const mines = Waffle.state;
 
@@ -74,48 +60,54 @@ content: |
   + }
   </code></pre>
 
+  Now that the mines have been placed, we can generate the numeric hints. If an open space has any mines next to it, we count them up and put that number in the space. They'll let the player logically deduce where the mines are.
 
+  <pre><code class="language-diff-javascript diff-highlight">// mine placement code redacted
+    mines[p.x][p.y] = 'mine';
+  }
 
-    // Now that mines are placed, loop through to determine
-    // numeric hints. Note the inverted x/y loops
-    for (let y = 0; y < rows; y += 1) {
-      for (let x = 0; x < columns; x += 1) {
+  + for (let y = 0; y < rows; y += 1) {
+  +   for (let x = 0; x < columns; x += 1) {
 
-        // Skip cells that contain mines
-        if (mines[x][y] === 'mine') {
-          continue;
-        }
+  +     // Skip cells that contain mines
+  +     if (mines[x][y] === 'mine') {
+  +       continue;
+  +     }
 
-        // Find the number of mines contained in neighboring cells
-        const hint = Waffle.getNeighbors({ x, y }, true)     // positions of 8 surrounding spaces
-                          .filter(({ x, y }) => mines[x][y] === 'mine') // keep the spaces that have mines
-                          .length;                                          // count how many there are
+  +     // Find the number of mines contained in neighboring cells
+  +     const count = Waffle.getNeighbors({ x, y }, true)     // positions of 8 surrounding spaces
+  +                       .filter(({ x, y }) => mines[x][y] === 'mine') // keep the spaces that have mines
+  +                       .length;                                          // count how many there are
+  +
+  +     const hints = ['empty','one','two','three','four','five','six'];
+  +
+  +     // now we can store the hint string; aka how many mines surround the square
+  +     mines[x][y] = hints[count];
+  +   }
+  + }</code></pre>
 
-        const numberMap = {
-          0: 'empty',
-          1: 'one',
-          2: 'two',
-          3: 'three',
-          4: 'four',
-          5: 'five',
-          6: 'sixe',
-        };
+  The mine grid is now complete. Next we'll set up the visual grid &mdash; when the game first starts, no mines have been revealed yet, so all the squares displayed to the player can be marked as `unknown`.
 
-        // now we can store the hint number; aka how many mines surround the square
-        mines[x][y] = numberMap[hint];
-      }
+  <pre><code class="language-diff-javascript diff-highlight">    // hint placement code redacted
+      mines[x][y] = hints[count];
     }
-  ```
+  }
 
+  + // initialize the visual grid with `unknown`
+  + Waffle.fill('unknown');
+  </code></pre>
 
+  The game state has now been completely initialized. Next we need to handle user input. To do that we'll replace the code in the `Waffle.onPointDown` handler that runs whenever the player taps or clicks the grid.
 
-  ```
+  <pre><code class="language-diff-javascript diff-highlight">
   Waffle.onPointDown(({x, y}) => {
     if (mineState[x][y] === 'mine') {
       // u lose
     }
 
-    const nextState = reveal({x, y}, Waffle.state);
+    const state = Waffle.state;
+
+    reveal({x, y}, state);
 
     Waffle.state = nextState;
 
@@ -123,3 +115,45 @@ content: |
       // u win
     }
   });
+  </code></pre>
+
+  const reveal = ({x, y}, state) {
+    // if this space has already been revealed, then stop
+    if (state !== 'unknown') {
+      return;
+    }
+
+    // reveal the space using the "mines" grid
+    state[x][y] = mines[x][y];
+
+    // if this space is a hint, then stop
+    if (state[x][y] !== 'empty') {
+      return;
+    }
+
+    // otherwise, since the cell is empty, we check
+    // all 8 neighbors for more empty cells
+    const includeDiagonals = true;
+    Waffle.getNeighbors({ x, y }, includeDiagonals).forEach(neighbor => {
+      reveal(neighbor, state);
+    });
+  };
+
+  const hasWonGame = () => {
+    const state = Waffle.state;
+
+    // search through state for unrevealed cells;
+    // note the inverted loops
+    for (let y = 0; y < Waffle.rows; y += 1) {
+      for (let x = 0; x < Waffle.columns; x += 1) {
+        const value = ;
+
+        // if cell doesn't have a mine, and is still unrevealed
+        if (state[x][y] === 'unknown' && mines[x][y] !== 'mine') {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
