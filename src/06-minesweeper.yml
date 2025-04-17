@@ -97,25 +97,37 @@ content: |
   + Waffle.fill('unknown');
   </code></pre>
 
-  The game state has now been completely initialized. Next we need to handle user input. To do that we'll replace the code in the `Waffle.onPointDown` handler that runs whenever the player taps or clicks the grid.
+  The game state has now been completely initialized. Next we need to handle user input. To do that we'll replace the code in the `Waffle.onPointDown` handler that runs whenever the player taps or clicks the grid. The first check we can make is if the player clicked a mine. We do that by checking the `{x, y}` coordinates of the `mines` data grid.
 
-  <pre><code class="language-diff-javascript diff-highlight">
-  Waffle.onPointDown(({x, y}) => {
-    if (mineState[x][y] === 'mine') {
-      // u lose
-    }
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({x, y}) => {
+  - console.debug(`clicked cell (${x}, ${y})`);
 
-    const state = Waffle.state;
+  - /* replace this with your own code! */
+    const newState = Waffle.state;
+
+  - if (Waffle.isEmpty(newState[x][y])) {
+  -   newState[x][y] = 'highlight';
+  - } else {
+  -   newState[x][y] = '';
+  - }
+
+  + if (mines[x][y] === 'mine') {
+  +   // show that the player clicked a mine
+  +   newState[x][y] = 'mine';
+  +   Waffle.alert('u lose');
+  + }
+
+    Waffle.state = newState;
+  });</code></pre>
+
+  If you reload the page and click around, you'll eventually find a mine and trigger the "game over" message.
+
 
     reveal({x, y}, state);
-
-    Waffle.state = nextState;
 
     if (hasWonGame()) {
       // u win
     }
-  });
-  </code></pre>
 
   const reveal = ({x, y}, state) {
     // if this space has already been revealed, then stop
@@ -126,7 +138,7 @@ content: |
     // reveal the space using the "mines" grid
     state[x][y] = mines[x][y];
 
-    // if this space is a hint, then stop
+    // if this space is not empty (e.g. a hint), then stop
     if (state[x][y] !== 'empty') {
       return;
     }
