@@ -22,7 +22,7 @@ content: |
 
   The common thread that connects this list is laziness: writing less code means you can complete a project faster and with fewer bugs.
 
-  A while ago I was working on a puzzle game that used a square grid to display various parts of the game. While I was able to make it work using my home-grown `<canvas>` framework, I wondered if it would be easier to use a framework like React to make a more lightweight version. It turned out that it was indeed possible, but I wanted to see if I could go even simpler &mdash; instead of the complexity of React, I could reduce the complexity of the game to updating a grid of `<div>` elements. 
+  A while ago I was working on a puzzle game that used a square grid to display various parts of the game. While I was able to make it work using my home-grown `<canvas>` framework, I wondered if it would be easier to use a framework like React to make a more lightweight version. It turned out that it was indeed possible, but I wanted to see if I could go even simpler &mdash; instead of the complexity of React, I could reduce the complexity of the game to updating a grid of `<div>` elements.
 
   I then had the idea to see how many different types of games I could make using a grid. Why a grid? It makes certain elements of game programming a lot easier:
 
@@ -41,5 +41,5 @@ content: |
   3. [Lights Out](03-lights-out.html)
   4. [Knight's Tour](04-knights-tour.html)
   5. [Snake](05-snake.html)
-  6. Minesweeper
+  6. [Minesweeper](06-minesweeper.html)
   7. Sokoban

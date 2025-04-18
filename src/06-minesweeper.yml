@@ -1,22 +1,22 @@
-title: Game #5: Minesweeper
+title: Game &#35;6&#58; Minesweeper
 author: Nathan Demick
 description: Make a "Minesweeper" game with Waffle
 content: |
-  One of the classic time-wasting games that lots of people have fond memories of is Minesweeper; particularly the [Microsoft version](https://en.wikipedia.org/wiki/Microsoft_Minesweeper). Since it was included in Windows 3.1, it was one of those games that you could always count on when you might have access to an unfamiliar PC. Although, I have a personal confession: I always played Solitaire or Hearts, rather than Minesweeper. I never took the time to really learn how to play the game! Nevertheless, Minesweeper is a classic example of a grid-based game, and one that is a great candidate for re-implementing yourself.
+  One of the classic time-wasting games that lots of people have fond memories of is Minesweeper; particularly the [Microsoft version](https://en.wikipedia.org/wiki/Microsoft_Minesweeper). Since it was included in Windows 3.1, it was one of those games that you could always count on when you might have access to an unfamiliar PC. Although, I have a personal confession: I always played Solitaire or Hearts, rather than Minesweeper. I never took the time to really learn how to play the game! Nevertheless, Minesweeper is a classic example of a grid-based game, and one that is a great candidate for making yourself.
 
   As far as the rules go, the game is actually pretty simple. You've got a grid, with randomly placed "mines." The mines are hidden by an overlay. Clicking one of the hidden grid cells will reveal what's underneath. If it's a mine, you lose. If it's a number, that means there are that many mines in the eight neighboring spaces. If it's blank, then all neighboring blank spaces are revealed. The gist is to try to reveal the game state by logically using the clues.
 
   Making a version of Minesweeper with Waffle uses two grid "layers." The first grid is what's actually displayed to the player -- basically storing which "unknown" spaces have been clicked. The second grid stores the location of the mines and hints. For a simple 5x5 game board, the following is a representation of what the `mines` grid would look like.
 
-  ```
+  <pre>
   [1][1][1][ ][ ]
   [1][*][2][ ][ ]
   [1][2][*][1][ ]
   [ ][1][1][2][1]
   [ ][ ][ ][1][*]
-  ```
+  </pre>
 
-  We'll start by making a 10x10 version of the game; increasing the board size can be left as an exercise for the reader. The first step is to [download Waffle](https://github.com/endemic/waffle/releases/latest) and open up `main.css`. We'll go ahead and add graphics for the various game objects that we plan to use in the game.
+  We'll start by making a 10x10 version of the game; increasing the board size can be left as an exercise for the reader. The first step is to [download Waffle](https://github.com/endemic/waffle/releases/latest) and open up `main.css`. We'll go ahead and add CSS classes for the various objects that we plan to use in the game. You can create your own images, or [download some pre-made ones](assets/minesweeper/images.zip).
 
   <pre><code class="language-diff-css diff-highlight">#grid {
     /* ... */
@@ -26,6 +26,7 @@ content: |
   -  }
 
   + .unknown { background-image: url('images/unknown.png'); }
+  + .flag { background-image: url('images/flag.png'); }
   + .mine { background-image: url('images/mine.png'); }
   + .empty { background-image: url('images/empty.png'); }
   + .one { background-image: url('images/one.png'); }
@@ -39,47 +40,46 @@ content: |
 
   Now that these CSS classes have been defined, we can set the value of a grid cell to `five` (for example), and have the associated image file show up in the right place. So what we'll do now is set up the two grids for the game, the "visual" grid (to show the current state of the game) and the "data" grid (holds locations of mines and hints).
 
-  We can set up the data grid after the call to `Waffle.init`; we can copy the 10x10 grid used by the visual grid, and overwrite its values. We'll start by randomly placing some mines in the grid, by writing the value `mine` to the appropriate grid index. This code chooses a random point in the grid, and tries to put a mine there. If that point already has something in it, we loop until we find an empty space.
+  Open up the `game.js` file in your favorite editor. It has some boilerplate that initializes Waffle with a certain number of rows and columns. We can set up the data grid after the call to `Waffle.init`; we'll copy the 10x10 grid used by the visual grid, and overwrite its values. Start by randomly placing some mines in the grid, and write the value `mine` to the appropriate grid index. This code chooses a random point in the grid, and tries to put a mine there. If that point already has something in it, we loop until we find an empty space. Add lines with a `+` in front of them, delete lines prefixed with a `-`.
 
   <pre><code class="language-diff-javascript diff-highlight">Waffle.init(rows, columns);
-
+  +
   + const mines = Waffle.state;
-
-  + // more mines == harder
   + const mineCount = 10;
-
+  +
   + // randomly place the mines
   + for (let i = 0; i < mineCount; i += 1) {
   +   let p = Waffle.randomPoint;
-
+  +
   +   while (!Waffle.isEmpty(mines[p.x][p.y])) {
   +     p = Waffle.randomPoint;
   +   }
-
+  +
   +   mines[p.x][p.y] = 'mine';
-  + }
-  </code></pre>
+  + }</code></pre>
 
   Now that the mines have been placed, we can generate the numeric hints. If an open space has any mines next to it, we count them up and put that number in the space. They'll let the player logically deduce where the mines are.
 
-  <pre><code class="language-diff-javascript diff-highlight">// mine placement code redacted
+  <pre><code class="language-diff-javascript diff-highlight">  // mine placement code redacted
     mines[p.x][p.y] = 'mine';
   }
-
+  +
   + for (let y = 0; y < rows; y += 1) {
   +   for (let x = 0; x < columns; x += 1) {
-
+  +
   +     // Skip cells that contain mines
   +     if (mines[x][y] === 'mine') {
   +       continue;
   +     }
-
-  +     // Find the number of mines contained in neighboring cells
-  +     const count = Waffle.getNeighbors({ x, y }, true)     // positions of 8 surrounding spaces
-  +                       .filter(({ x, y }) => mines[x][y] === 'mine') // keep the spaces that have mines
-  +                       .length;                                          // count how many there are
   +
-  +     const hints = ['empty','one','two','three','four','five','six'];
+  +     // Find the number of mines contained in neighboring cells
+  +     const includeDiagonals = true;
+  +     const count = Waffle.getNeighbors({ x, y }, includeDiagonals)     // 8 surrounding cells
+  +                         .filter(({ x, y }) => mines[x][y] === 'mine') // keep the cells that have mines
+  +                         .length;                                      // count them
+  +
+  +     // unlikely to be more than 6 neighboring mines
+  +     const hints = ['empty', 'one', 'two', 'three', 'four', 'five', 'six'];
   +
   +     // now we can store the hint string; aka how many mines surround the square
   +     mines[x][y] = hints[count];
@@ -92,37 +92,58 @@ content: |
       mines[x][y] = hints[count];
     }
   }
-
+  +
   + // initialize the visual grid with `unknown`
   + Waffle.fill('unknown');
-  </code></pre>
+  +
+  + // uncomment below to see the "data" grid
+  + // Waffle.state = mines;</code></pre>
 
-  The game state has now been completely initialized. Next we need to handle user input. To do that we'll replace the code in the `Waffle.onPointDown` handler that runs whenever the player taps or clicks the grid. The first check we can make is if the player clicked a mine. We do that by checking the `{x, y}` coordinates of the `mines` data grid.
+  The game state has now been completely initialized. Load `index.html` in your browser (<strong>File &rarr; Open File &rarr; index.html</strong>), and you should see a 10x10 grid with each cell filled with the `unknown` graphic.
 
-  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({x, y}) => {
-  - console.debug(`clicked cell (${x}, ${y})`);
+  <figure>
+    <img src="assets/minesweeper/example_1.png" alt="unknown cells... mines could be anywhere!">
+    <figcaption>unknown cells... mines could be anywhere!</figcaption>
+  </figure>
+
+  Next we need to handle user input. To do that we'll replace the code in the `Waffle.onPointDown` handler that runs whenever the player taps or clicks the grid. The first check we can make is if the player clicked a mine. We do that by checking the `{x, y}` coordinates of the `mines` data grid.
+
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }, { primary, secondary }) => {
+  - console.log(`${secondary ? 'right' : 'left'}-clicked cell (${x}, ${y})`);
 
   - /* replace this with your own code! */
-    const newState = Waffle.state;
+    const state = Waffle.state;
 
-  - if (Waffle.isEmpty(newState[x][y])) {
-  -   newState[x][y] = 'highlight';
+  - if (Waffle.isEmpty(state[x][y])) {
+  -   state[x][y] = 'highlight';
   - } else {
-  -   newState[x][y] = '';
+  -   state[x][y] = '';
   - }
 
   + if (mines[x][y] === 'mine') {
   +   // show that the player clicked a mine
-  +   newState[x][y] = 'mine';
+  +   state[x][y] = 'mine';
   +   Waffle.alert('u lose');
   + }
 
-    Waffle.state = newState;
+    Waffle.state = state;
   });</code></pre>
 
-  If you reload the page and click around, you'll eventually find a mine and trigger the "game over" message. This version isn't much fun, since all you can do is eventually lose. The next step is to reveal empty cells, or cells that contain a hint. There are various ways we could implement this functionality, but one fun way is to use a recursive function. The function reveals a cell, then if that cell is empty will try to reveal the 8 surrounding cells by calling the same function again. The base case is when the cell contains a hint; then we stop. This function uses a JavaScript feature which allows us to modify the `state` value in place, without having to return it.
+  If you reload the page and click around, you'll eventually find a mine and trigger the "game over" message.
 
-  <pre><code class="language-diff-javascript diff-highlight">const reveal = ({x, y}, state) {
+  <figure>
+    <img src="assets/minesweeper/example_2.png" alt="game over man!">
+    <figcaption>game over man!</figcaption>
+  </figure>
+
+  This version isn't much fun, since all you can do is eventually lose. The next step is to reveal empty cells, or cells that contain a hint. There are various ways we could implement this functionality, but one fun way is to use a recursive function. The function reveals a cell, then if that cell is empty will try to reveal the 8 surrounding cells by calling the same function again. The base case is when the cell contains a hint; then we stop. This function uses a JavaScript feature which allows us to modify the `state` value in place, without having to return it.
+
+  <pre><code class="language-diff-javascript">const reveal = ({x, y}, state) => {
+    // if this space has already been revealed, then stop
+    if (state[x][y] !== 'unknown') {
+      return;
+    }
+
     // reveal using whatever value is in the "mines" data grid
     state[x][y] = mines[x][y];
 
@@ -139,23 +160,28 @@ content: |
     });
   };</code></pre>
 
-  Using it is dead simple.
+  Add this function at the bottom of `game.js`. Using it is dead simple.
 
-  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({x, y}) => {
-    const newState = Waffle.state;
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }, { primary, secondary }) => {
+    const state = Waffle.state;
 
     if (mines[x][y] === 'mine') {
       // show that the player clicked a mine
-      newState[x][y] = 'mine';
+      state[x][y] = 'mine';
       Waffle.alert('u lose');
     }
 
-  + reveal({x, y}, newState);
+  + reveal({x, y}, state);
 
-    Waffle.state = newState;
+    Waffle.state = state;
   });</code></pre>
 
   The effect when revealing large parts of the grid is so cool. This lets us complete a level by revealing all the safe cells, and leaving the mines.
+
+  <figure>
+    <img src="assets/minesweeper/example_3.png" alt="revealing the safe spaces">
+    <figcaption>revealing the safe spaces</figcaption>
+  </figure>
 
   It'd be nice to have some validation of all our hard work, though. Let's add a function that checks if we've won the game. A win condition is when the only `unknown` cells in the grid are covering mines. To check for this, we can loop through each cell and check both the visual grid and the data grid. If the cell in the visual grid is `unknown` and the cell in the data grid isn't a mine, that means we haven't won yet.
 
@@ -177,37 +203,42 @@ content: |
 
   We can then call this function after every click/tap.
 
-  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({x, y}) => {
-    const newState = Waffle.state;
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }, { primary, secondary }) => {
+    const state = Waffle.state;
 
     if (mines[x][y] === 'mine') {
       // show that the player clicked a mine
-      newState[x][y] = 'mine';
+      state[x][y] = 'mine';
       Waffle.alert('u lose');
     }
 
-    reveal({x, y}, newState);
+    reveal({x, y}, state);
+
+    Waffle.state = state;
 
   + if (hasWonGame()) {
   +   Waffle.alert('a winnar is you!');
   + }
-
-    Waffle.state = newState;
   });</code></pre>
+
+  <figure>
+    <img src="assets/minesweeper/example_4.png" alt="winning!">
+    <figcaption>winning!</figcaption>
+  </figure>
 
   The game is 100% playable at this point, but one last important feature is the ability to add markers, or "flags," to help indicate where mines are. In the classic desktop game, these are placed/removed by a click of the right mouse button. We'll go ahead and implement that feature here, and leave a touch-only/mobile implementation to the reader.
 
-  Waffle's built-in `onPointDown` helper will pass an optional `button` argument whenever the player clicks (it is ignored if the player taps). We can use that to check if the player right-clicks.
+  Waffle's built-in `onPointDown` helper will pass a `button` object as the second argument whenever the player clicks (not really applicable for touches, though). We can use that to check if the player right-clicks.
 
-  <pre><code class="language-diff-javascript diff-highlight">+ Waffle.onPointDown(({x, y}, button) => {
-    const newState = Waffle.state;
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }, { primary, secondary }) => {
+    const state = Waffle.state;
 
   + // toggle flags with the secondary mouse button
-  + if (button === 'secondary') {
-  +   if (newState[x][y] === 'flag') {
-  +     newState[x][y] = 'unknown';
-  +   } else if (newState[x][y] === 'unknown') {
-  +     newState[x][y] = 'flag';
+  + if (secondary) {
+  +   if (state[x][y] === 'flag') {
+  +     state[x][y] = 'unknown';
+  +   } else if (state[x][y] === 'unknown') {
+  +     state[x][y] = 'flag';
   +   }
   +
   +   Waffle.state = state;
@@ -221,19 +252,29 @@ content: |
 
     if (mines[x][y] === 'mine') {
       // show that the player clicked a mine
-      newState[x][y] = 'mine';
+      state[x][y] = 'mine';
       Waffle.alert('u lose');
     }
 
-    reveal({x, y}, newState);
+    reveal({x, y}, state);
+
+    Waffle.state = state;
 
     if (hasWonGame()) {
       Waffle.alert('a winnar is you!');
     }
-
-    Waffle.state = newState;
   });</code></pre>
 
-  <pre><code class="language-diff-javascript diff-highlight">
-  document.querySelector('#grid').addEventListener('contextmenu', e => e.preventDefault());
-  </code></pre>
+  <figure>
+    <img src="assets/minesweeper/example_5.png" alt="plant your flag">
+    <figcaption>plant your flag</figcaption>
+  </figure>
+
+  Congrats! You now have a fully-functional Minesweeper game. Upload all the files to someplace like [Neocities](https://neocities.org) and show your friends!
+
+  ### Extra Credit
+
+  Add a feature that lets the player select a harder difficulty, which both increases the grid size and the number of mines. One way you might do this is to use [URLSearchParams](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams).
+
+  <pre><code class="language-diff-javascript">const params = new URLSearchParams(window.location.search);
+  // now if you add `?difficulty=easy` to the URL, the string `easy` is accessible via `params.difficulty`</code></pre>
