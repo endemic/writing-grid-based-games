@@ -120,25 +120,13 @@ content: |
     Waffle.state = newState;
   });</code></pre>
 
-  If you reload the page and click around, you'll eventually find a mine and trigger the "game over" message.
+  If you reload the page and click around, you'll eventually find a mine and trigger the "game over" message. This version isn't much fun, since all you can do is eventually lose. The next step is to reveal empty cells, or cells that contain a hint. There are various ways we could implement this functionality, but one fun way is to use a recursive function. The function reveals a cell, then if that cell is empty will try to reveal the 8 surrounding cells by calling the same function again. The base case is when the cell contains a hint; then we stop. This function uses a JavaScript feature which allows us to modify the `state` value in place, without having to return it.
 
-
-    reveal({x, y}, state);
-
-    if (hasWonGame()) {
-      // u win
-    }
-
-  const reveal = ({x, y}, state) {
-    // if this space has already been revealed, then stop
-    if (state !== 'unknown') {
-      return;
-    }
-
-    // reveal the space using the "mines" grid
+  <pre><code class="language-diff-javascript diff-highlight">const reveal = ({x, y}, state) {
+    // reveal using whatever value is in the "mines" data grid
     state[x][y] = mines[x][y];
 
-    // if this space is not empty (e.g. a hint), then stop
+    // if this cell is a hint, then stop
     if (state[x][y] !== 'empty') {
       return;
     }
@@ -149,18 +137,35 @@ content: |
     Waffle.getNeighbors({ x, y }, includeDiagonals).forEach(neighbor => {
       reveal(neighbor, state);
     });
-  };
+  };</code></pre>
 
-  const hasWonGame = () => {
+  Using it is dead simple.
+
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({x, y}) => {
+    const newState = Waffle.state;
+
+    if (mines[x][y] === 'mine') {
+      // show that the player clicked a mine
+      newState[x][y] = 'mine';
+      Waffle.alert('u lose');
+    }
+
+  + reveal({x, y}, newState);
+
+    Waffle.state = newState;
+  });</code></pre>
+
+  The effect when revealing large parts of the grid is so cool. This lets us complete a level by revealing all the safe cells, and leaving the mines.
+
+  It'd be nice to have some validation of all our hard work, though. Let's add a function that checks if we've won the game. A win condition is when the only `unknown` cells in the grid are covering mines. To check for this, we can loop through each cell and check both the visual grid and the data grid. If the cell in the visual grid is `unknown` and the cell in the data grid isn't a mine, that means we haven't won yet.
+
+  <pre><code class="language-diff-javascript diff-highlight">const hasWonGame = () => {
     const state = Waffle.state;
 
-    // search through state for unrevealed cells;
-    // note the inverted loops
-    for (let y = 0; y < Waffle.rows; y += 1) {
-      for (let x = 0; x < Waffle.columns; x += 1) {
-        const value = ;
-
-        // if cell doesn't have a mine, and is still unrevealed
+    // search through state for "unknown" cells;
+    for (let x = 0; x < Waffle.columns; x += 1) {
+      for (let y = 0; y < Waffle.rows; y += 1) {
+        // if cell is "unknown" and not a mine, that means it can still be revealed
         if (state[x][y] === 'unknown' && mines[x][y] !== 'mine') {
           return false;
         }
@@ -168,4 +173,67 @@ content: |
     }
 
     return true;
-  };
+  };</code></pre>
+
+  We can then call this function after every click/tap.
+
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({x, y}) => {
+    const newState = Waffle.state;
+
+    if (mines[x][y] === 'mine') {
+      // show that the player clicked a mine
+      newState[x][y] = 'mine';
+      Waffle.alert('u lose');
+    }
+
+    reveal({x, y}, newState);
+
+  + if (hasWonGame()) {
+  +   Waffle.alert('a winnar is you!');
+  + }
+
+    Waffle.state = newState;
+  });</code></pre>
+
+  The game is 100% playable at this point, but one last important feature is the ability to add markers, or "flags," to help indicate where mines are. In the classic desktop game, these are placed/removed by a click of the right mouse button. We'll go ahead and implement that feature here, and leave a touch-only/mobile implementation to the reader.
+
+  Waffle's built-in `onPointDown` helper will pass an optional `button` argument whenever the player clicks (it is ignored if the player taps). We can use that to check if the player right-clicks.
+
+  <pre><code class="language-diff-javascript diff-highlight">+ Waffle.onPointDown(({x, y}, button) => {
+    const newState = Waffle.state;
+
+  + // toggle flags with the secondary mouse button
+  + if (button === 'secondary') {
+  +   if (newState[x][y] === 'flag') {
+  +     newState[x][y] = 'unknown';
+  +   } else if (newState[x][y] === 'unknown') {
+  +     newState[x][y] = 'flag';
+  +   }
+  +
+  +   Waffle.state = state;
+  +   return;
+  + }
+  +
+  + // do nothing if left click on flag
+  + if (state[x][y] === 'flag') {
+  +   return;
+  + }
+
+    if (mines[x][y] === 'mine') {
+      // show that the player clicked a mine
+      newState[x][y] = 'mine';
+      Waffle.alert('u lose');
+    }
+
+    reveal({x, y}, newState);
+
+    if (hasWonGame()) {
+      Waffle.alert('a winnar is you!');
+    }
+
+    Waffle.state = newState;
+  });</code></pre>
+
+  <pre><code class="language-diff-javascript diff-highlight">
+  document.querySelector('#grid').addEventListener('contextmenu', e => e.preventDefault());
+  </code></pre>
