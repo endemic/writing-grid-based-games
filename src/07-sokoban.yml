@@ -1,4 +1,4 @@
-title: Game #6: Sokoban
+title: Game  &#35;7&#58; Sokoban
 author: Nathan Demick
 description: Make a "Sokoban" game with Waffle
 content: |
@@ -19,7 +19,7 @@ content: |
     + }
   }</code></pre>
 
-  Make your own graphics if you want, otherwise you can [download some.](assets/sokoban/images.zip).
+  Make your own graphics if you want, otherwise you can [download some.](assets/sokoban/images.zip)
 
   Now we have to figure out what we want the level to look like. I guess normally you'd have some sort of fancy data structure for storing levels, but here we're gonna just use a 2D array. One benefit of this is being able to edit the level directly in your source file. In this array, a space will be an empty area, and a `#` will be a wall. After the call to `Waffle.init`, add the level data.
 
@@ -39,7 +39,7 @@ content: |
   +   [' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
   + ];</code></pre>
 
-  Now we need to take that data and display it in the game, by injecting it into the grid. We're converting the `#` symbol into the string `'wall'`, just so that it's easier to see how the level will look when each grid cell is a single character. To do that we'll loop over each (x,y) position of the level data, and set the corresponding value in Waffle's `state`. After the `level` variable, add the following:
+  Now we need to take that data and display it in the game, by injecting it into Waffle's grid. We're converting the `#` symbol into the string `'wall'`, just so that it's easier to see how the level will look when each grid cell is a single character. To do that we'll loop over each (x,y) position of the level data, and set the corresponding value in Waffle's `state`. After the `level` variable, add the following:
 
   <pre><code class="language-diff-javascript diff-highlight">+ const nextState = Waffle.state;
 
@@ -76,7 +76,7 @@ content: |
     ]
   </code></pre>
 
-  You can see that this loop is the inverse of how we expect Cartesian coordinates to be represented. We can solve the problem in one of two ways.
+  You can see that this loop inverts the `(x, y)` values. We can solve the problem in one of two ways.
 
   <pre><code class="language-diff-javascript diff-highlight">- for (let x = 0; x < Waffle.columns; x += 1) {
   -   for (let y = 0; y < Waffle.rows; y += 1) {
@@ -96,7 +96,7 @@ content: |
     }
   }</code></pre>
 
-  Waffle uses the first solution when mapping its `state` variable to the HTML on the page, so we can use `x` and `y` to access grid values in a more natural way.
+  Waffle uses the first solution when mapping its `state` variable to the HTML on the page, so we can use `x` and `y` to access grid values like you would expect.
 
   The next thing we can add is the player. We'll take a page out of [roguelike games](https://en.wikipedia.org/wiki/Roguelike) and use `@` to represent the player's starting location in the level.
 
@@ -148,6 +148,85 @@ content: |
   +   background: url('player.png') center/100%;
   + }
   }</code></pre>
+
+  Reload, and the player should appear in the level.
+
+  <!-- graphic here -->
+
+  Now we need to move the player around. To that end, we'll add some code to the `Waffle.onKeyDown` callback function that's already in `game.js`. Normally when updating a player object, we'd just directly change its `(x, y)` values. To check for collisions, we'd see if the new position already had an object in it using `Waffle.isEmpty`. But since I know a little more about the functionality we have to write next, we're going to start off making things slightly more complicated. The reason for this is that we need to take box-pushing into account. If the player moves into a box, we want to move the box to the next open space. But in order to do that, we need to know the direction the player is moving; e.g. it's easier to add a `{x: 0, y: 1}` value to both the player _and_ the box, rather than have to determine that same value after each movement by subtracting the player's new position from the old.
+
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onKeyDown(({ key }) => {
+  - console.log(`pressed ${key}`);
+  + const move = {x: 0, y: 0};
+  +
+  + switch (key) {
+  +   case 'w':
+  +     move.y -= 1;
+  +     break;
+  +   case 's':
+  +     move.y += 1;
+  +     break;
+  +   case 'a':
+  +     move.x -= 1;
+  +     break;
+  +   case 'd':
+  +     move.x += 1;
+  +     break;
+  + }
+  +
+  + const destination = {
+  +   x: player.x + move.x,
+  +   y: player.y + move.y
+  + };
+  +
+  + const state = Waffle.state;
+  +
+  + // remove from the old position
+  + state[player.x][player.y] = '';
+  +
+  + // update position data
+  + player.x = destination.x;
+  + player.y = destination.y;
+  +
+  + // put player in new position
+  + state[player.x][player.y] = 'player';
+  +
+  + // update the game
+  + Waffle.state = state;
+  });</code></pre>
+
+  You can see here that we take keyboard input from `w`, `a`, `s`, `d` and determine a `move` vector based on that. Then we can calculate the player's next position, and update the display.
+
+  <!-- image here -->
+
+  You'll notice, of course, that the player can move through walls, destroying them at the same time. Before blindly moving the player, we can check to see if the destination contains a wall.
+
+    <pre><code class="language-diff-javascript diff-highlight">Waffle.onKeyDown(({ key }) => {
+
+  +
+  + const destination = {
+  +   x: player.x + move.x,
+  +   y: player.y + move.y
+  + };
+  +
+  + const state = Waffle.state;
+
+  if (Waffle.isEmpty(state[destination.x][destination.y])) {
+    + // remove from the old position
+  + state[player.x][player.y] = '';
+  +
+  + // update position data
+  + player.x = destination.x;
+  + player.y = destination.y;
+  +
+  + // put player in new position
+  + state[player.x][player.y] = 'player';
+  }
+
+  +
+  + // update the game
+  + Waffle.state = state;
+  });</code></pre>
 
   ----------------
 
