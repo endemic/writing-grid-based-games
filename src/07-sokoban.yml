@@ -153,7 +153,7 @@ content: |
 
   <!-- graphic here -->
 
-  Now we need to move the player around. To that end, we'll add some code to the `Waffle.onKeyDown` callback function that's already in `game.js`. Normally when updating a player object, we'd just directly change its `(x, y)` values. To check for collisions, we'd see if the new position already had an object in it using `Waffle.isEmpty`. But since I know a little more about the functionality we have to write next, we're going to start off making things slightly more complicated. The reason for this is that we need to take box-pushing into account. If the player moves into a box, we want to move the box to the next open space. But in order to do that, we need to know the direction the player is moving; e.g. it's easier to add a `{x: 0, y: 1}` value to both the player _and_ the box, rather than have to determine that same value after each movement by subtracting the player's new position from the old.
+  Now we need to move the player around. To that end, we'll add some code to the `Waffle.onKeyDown` callback function that's already in `game.js`. Normally when updating a player object, we'd just directly change its `(x, y)` values. But since I know a little more about the functionality we have to write next, we're going to start off making things slightly more complicated. The reason for this is that we need to take box-pushing into account. If the player moves into a box, we want to move the box to the next open space. But in order to do that, we need to know the direction the player is moving; e.g. it's easier to add a `{x: 0, y: 1}` value to both the player _and_ the box, rather than have to determine that same value after each movement by subtracting the player's new position from the old.
 
   <pre><code class="language-diff-javascript diff-highlight">Waffle.onKeyDown(({ key }) => {
   - console.log(`pressed ${key}`);
@@ -174,7 +174,7 @@ content: |
   +     break;
   + }
   +
-  + const destination = {
+  + const playerNext = {
   +   x: player.x + move.x,
   +   y: player.y + move.y
   + };
@@ -185,8 +185,8 @@ content: |
   + state[player.x][player.y] = '';
   +
   + // update position data
-  + player.x = destination.x;
-  + player.y = destination.y;
+  + player.x = playerNext.x;
+  + player.y = playerNext.y;
   +
   + // put player in new position
   + state[player.x][player.y] = 'player';
@@ -199,34 +199,129 @@ content: |
 
   <!-- image here -->
 
-  You'll notice, of course, that the player can move through walls, destroying them at the same time. Before blindly moving the player, we can check to see if the destination contains a wall.
+  You'll notice, of course, that the player can move through walls, destroying them at the same time. Before blindly moving the player, we can check to see if the destination contains a wall. Let's add a condition to check if the new position already had an object in it using `Waffle.isEmpty`.
 
-    <pre><code class="language-diff-javascript diff-highlight">Waffle.onKeyDown(({ key }) => {
+  <pre><code class="language-diff-javascript diff-highlight">const state = Waffle.state;
 
-  +
-  + const destination = {
-  +   x: player.x + move.x,
-  +   y: player.y + move.y
+  + if (Waffle.isEmpty(state[playerNext.x][playerNext.y])) {
+      // remove from the old position
+      state[player.x][player.y] = '';
+
+      // update position data
+      player.x = playerNext.x;
+      player.y = playerNext.y;
+
+      // put player in new position
+      state[player.x][player.y] = 'player';
+  + }
+
+  // update the game
+  Waffle.state = state;</code></pre>
+
+  Save the source file, reload the page, and voilà! Now the player is blocked by walls, as we would expect.
+
+  <!-- image -->
+
+  Next, let's add boxes! Hoo boy, things are getting exciting now! Use `B` to represent a Box. We'll create three of them in this level.
+
+  <pre><code class="language-diff-javascript diff-highlight">const level = [
+    ['#','#','#','#','#',' ',' ',' ',' ',' '],
+    ['#',' ',' ',' ','#',' ','#','#','#',' '],
+    ['#','@',' ',' ','#',' ','#','#','#',' '],
+  - ['#',' ',' ',' ','#',' ','#','x','#',' '],
+  - ['#',' ',' ',' ','#',' ','#','x','#',' '],
+  + ['#',' ','B','B','#',' ','#','x','#',' '],
+  + ['#',' ','B',' ','#',' ','#','x','#',' '],
+    ['#','#','#',' ','#','#','#',' ','#',' '],
+    [' ','#','#',' ',' ',' ',' ',' ','#',' '],
+    [' ','#',' ',' ',' ','#',' ',' ','#',' '],
+    [' ','#',' ',' ',' ','#','#','#','#',' '],
+    [' ','#','#','#','#','#',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
+  ];</code></pre>
+
+  Update the level parsing code to recognize the `B` character as a box.
+
+  <pre><code class="language-diff-javascript diff-highlight">for (let y = 0; y < Waffle.rows; y += 1) {
+    for (let x = 0; x < Waffle.columns; x += 1) {
+      const cell = level[x][y];
+
+      // evaluate the simplifed text contents of the
+      // level data and set the state of the grid
+      switch (cell) {
+        case '#':
+          nextState[x][y] = 'wall';
+          break;
+        case '@':
+          nextState[x][y] = 'player';
+          player.x = x;
+          player.y = y;
+          break;
+  +     case 'B':
+  +       nextState[x][y] = 'box';
+  +       break;
+    }
+  }</code></pre>
+
+  And we need to add the associated CSS class.
+
+  <pre><code class="language-diff-css diff-highlight">#grid {
+    /* omitted for brevity */
+
+    .wall {
+      background: url('wall.png') center/100%;
+    }
+    .player {
+      background: url('player.png') center/100%;
+    }
+  + .box {
+  +   background: url('box.png') center/100%;
+  + }
+  }</code></pre>
+
+  Save and reload to see boxes! Not bad. You'll notice that at this point, boxes behave like walls. This is because our collision detection code just checks for the presence of _anything_ in the target cell. We can update the logic to distinguish between walls and boxes.
+
+  <pre><code class="language-diff-javascript diff-highlight">const state = Waffle.state;
+
+  if (Waffle.isEmpty(state[playerNext.x][playerNext.y])) {
+    // remove from the old position
+    state[player.x][player.y] = '';
+
+    // update position data
+    player.x = playerNext.x;
+    player.y = playerNext.y;
+
+    // put player in new position
+    state[player.x][player.y] = 'player';
+  + } else if (state[playerNext.x][playerNext.y] === 'box') {
+  + // determine the box's next position
+  + const boxNext = {
+  +   x: playerNext.x + move.x,
+  +   y: playerNext.y + move.y
   + };
   +
-  + const state = Waffle.state;
-
-  if (Waffle.isEmpty(state[destination.x][destination.y])) {
-    + // remove from the old position
-  + state[player.x][player.y] = '';
+  + // is next position for the box open?
+  + if (Waffle.isEmpty(state[boxNext.x][boxNext.y])) {
+  +   // move the box
+  +   state[boxNext.x][boxNext.y] = 'box';
   +
-  + // update position data
-  + player.x = destination.x;
-  + player.y = destination.y;
+  +   // move the player (same as above)
+  +   // the player will overwrite the box's previous position
+  +   state[player.x][player.y] = '';
   +
-  + // put player in new position
-  + state[player.x][player.y] = 'player';
+  +   player.x = playerNext.x;
+  +   player.y = playerNext.y;
+  +
+  +   state[player.x][player.y] = 'player';
+  + } else {
+  +   console.log(`Can't move box; blocked by ${state[boxNext.x][boxNext.y]}`);
+  + }
   }
 
-  +
-  + // update the game
-  + Waffle.state = state;
-  });</code></pre>
+  // update the game
+  Waffle.state = state;</code></pre>
+
+
 
   ----------------
 
