@@ -45,15 +45,15 @@ Waffle.init(rows, columns);
 +   { x: 22, y: 25 }
 + ];
 +
-+ const nextState = Waffle.state;
++ const state = Waffle.state;
 +
 + // set the correct grid cells with the snake's body
 + for (const {x, y} of snake) {
-+   nextState[x][y] = 'snake';
++   state[x][y] = 'snake';
 + }
 +
 + // update the game state, which draws the snake
-+ Waffle.state = nextState;
++ Waffle.state = state;
 
 Waffle.onKeyDown(({ key }) =&gt; {</code></pre>
 
@@ -85,15 +85,20 @@ Waffle.onKeyDown(({ key }) =&gt; {</code></pre>
 
 <p>After the code which initializes the snake, add this line, which sets up the update loop to run every 30ms.</p>
 
-<pre><code class="language-diff-javascript diff-highlight">Waffle.state = nextState;
+<pre><code class="language-diff-javascript diff-highlight">// set the correct grid cells with the snake's body
+for (const {x, y} of snake) {
+  state[x][y] = 'snake';
+}
+
+Waffle.state = state;
 +
 + // store the ID so we can turn off the update loop later if we need to
 + const intervalId = setInterval(update, 30);
 </code></pre>
 
-<p>Now that we’ve referenced the <code>update</code> function, we actually have to write it.</p>
+<p>Now that we’ve referenced the <code>update</code> function, we actually have to write it. Add the following function to the end <code>game.js</code>.</p>
 
-<pre><code class="language-diff-javascript diff-highlight">+ const update = () =&gt; {
+<pre><code class="language-diff-javascript diff-highlight">const update = () =&gt; {
   // copy the snake's head to make a new one
   const snakeHead = { ...snake[0] };
 
@@ -105,31 +110,30 @@ Waffle.onKeyDown(({ key }) =&gt; {</code></pre>
     snakeHead.x = 0;
   }
 
-  const nextState = Waffle.state;
+  const state = Waffle.state;
 
   // clear the current snake position
   for (const {x, y} of snake) {
-    nextState[x][y] = '';
+    state[x][y] = '';
   }
 
-  // push the new head on to the front of the `snake` array,
+  // add the new head to the beginning of the `snake` array
   snake.unshift(snakeHead);
 
   // remove the last tail segment
   snake.pop();
 
-  // re-position the snake
+  // re-draw the snake
   for (const {x, y} of snake) {
-    nextState[x][y] = 'snake';
+    state[x][y] = 'snake';
   }
 
-  // update the game state, which draws the snake
-  Waffle.state = nextState;
+  // update the game state
+  Waffle.state = state;
 };
 
 // store the ID so we can turn off the update loop later if we need to
-const intervalId = setInterval(update, 30);
-</code></pre>
+const intervalId = setInterval(update, 30);</code></pre>
 
 <p>Save the game source file and reload the page; you should see the snake continually moving from left to right.</p>
 
@@ -186,7 +190,7 @@ if (snakeHead.x &gt;= Waffle.columns) {
 + }
 });</code></pre>
 
-<p>Reload the page, and now you can use the w, a, s and d keys to change the direction the snake moves.</p>
+<p>Reload the page, and now you can use the <code>w</code>, <code>a</code>, <code>s</code> and <code>d</code> keys to change the direction the snake moves.</p>
 
 <figure>
   <img src="assets/snake/example_3.gif" alt="ride the snake!" />
@@ -227,26 +231,26 @@ if (snakeHead.x &gt;= Waffle.columns) {
 
 <p>Now we can write the code that randomly places apples in empty spaces around the grid.</p>
 
-<pre><code class="language-diff-javascript diff-highlight">const nextState = Waffle.state;
+<pre><code class="language-diff-javascript diff-highlight">const state = Waffle.state;
 
 // set the correct grid cells with the snake's body
 for (const {x, y} of snake) {
-  nextState[x][y] = 'snake';
+  state[x][y] = 'snake';
 }
 +
 + // create 10 apples
 + for (let i = 0; i &lt; 10; i += 1) {
 +   let point = Waffle.randomPoint;
 +   // if random point is not empty, loop until an empty one is found
-+   while (!Waffle.isEmpty(nextState[point.x][point.y])) {
++   while (!Waffle.isEmpty(state[point.x][point.y])) {
 +     point = Waffle.randomPoint;
 +   }
 +
-+   nextState[point.x][point.y] = 'apple';
++   state[point.x][point.y] = 'apple';
 + }
 
 // update the game state, which draws the snake
-Waffle.state = nextState;</code></pre>
+Waffle.state = state;</code></pre>
 
 <p>Reload, and you’ll see apples randomly dotted around.</p>
 
@@ -264,34 +268,34 @@ snake.unshift(snakeHead);
 
 + // this is tricky -- remove the last tail part if the next space is empty
 + // otherwise we can assume the snake hit an apple, and keep the tail
-+ if (Waffle.isEmpty(nextState[snakeHead.x][snakeHead.y])) {
++ if (Waffle.isEmpty(state[snakeHead.x][snakeHead.y])) {
   // remove the last tail segment
   snake.pop();
 + }
 
 // re-draw the snake
 for (const {x, y} of snake) {
-  nextState[x][y] = 'snake';
+  state[x][y] = 'snake';
 }</code></pre>
 
 <p>The last rule we’ll program in is that the snake can’t touch its own body — no ouroboros-ing! We’ll accomplish this by checking if the new head overlaps the body. If it does, then display a message and stop the update loop. Otherwise, continue as normal.</p>
 
-<pre><code class="language-diff-javascript diff-highlight">const nextState = Waffle.state;
+<pre><code class="language-diff-javascript diff-highlight">const state = Waffle.state;
 +
-+ if (nextState[snakeHead.x][snakeHead.y] === 'snake') {
-+   delayedAlert('game over, man!');
++ if (state[snakeHead.x][snakeHead.y] === 'snake') {
++   Waffle.alert('game over, man!');
 +   clearInterval(intervalId);
 + }
 
 // clear the current snake position
 for (const {x, y} of snake) {
-  nextState[x][y] = '';
+  state[x][y] = '';
 }
 
 // push the new head on to the front of the `snake` array,
 snake.unshift(snakeHead);</code></pre>
 
-<p>TODO: add <code>delayedAlert</code> (or similar) to grid</p>
+<p>There it is! A (very) basic “snake” game. If you haven’t had enough yet, there are a few more features you can add.</p>
 
 <h3 id="extra-credit">Extra Credit</h3>
 
