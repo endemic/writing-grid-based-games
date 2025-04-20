@@ -102,7 +102,6 @@ content: |
 
   <pre><code class="language-diff-javascript diff-highlight">const level = [
     ['#','#','#','#','#',' ',' ',' ',' ',' '],
-  - ['#',' ',' ',' ','#',' ','#','#','#',' '],
   + ['#','@',' ',' ','#',' ','#','#','#',' '],
     ['#',' ',' ',' ','#',' ','#',' ','#',' '],
     ['#',' ',' ',' ','#',' ','#',' ','#',' '],
@@ -226,12 +225,10 @@ content: |
 
   <pre><code class="language-diff-javascript diff-highlight">const level = [
     ['#','#','#','#','#',' ',' ',' ',' ',' '],
-    ['#',' ',' ',' ','#',' ','#','#','#',' '],
     ['#','@',' ',' ','#',' ','#','#','#',' '],
-  - ['#',' ',' ',' ','#',' ','#','x','#',' '],
-  - ['#',' ',' ',' ','#',' ','#','x','#',' '],
-  + ['#',' ','B','B','#',' ','#','x','#',' '],
-  + ['#',' ','B',' ','#',' ','#','x','#',' '],
+    ['#',' ',' ',' ','#',' ','#',' ','#',' '],
+  + ['#',' ','B','B','#',' ','#',' ','#',' '],
+  + ['#',' ','B',' ','#',' ','#',' ','#',' '],
     ['#','#','#',' ','#','#','#',' ','#',' '],
     [' ','#','#',' ',' ',' ',' ',' ','#',' '],
     [' ','#',' ',' ',' ','#',' ',' ','#',' '],
@@ -321,7 +318,92 @@ content: |
   // update the game
   Waffle.state = state;</code></pre>
 
+  Awesome, the player can now push boxes around! If you open the browser's development console, you can also see a message printed if the box is blocked by a wall or another box.
 
+  <!-- image of player moving boxes -->
+
+  Now that boxes can be moved, we need to add targets &mdash; the raison d'être for this game. Once all the targets have boxes on them, the level is completed. In a stoke of genius, we'll use the character `T` to represent a target in the level data.
+
+  <pre><code class="language-diff-javascript diff-highlight">const level = [
+    ['#','#','#','#','#',' ',' ',' ',' ',' '],
+    ['#','@',' ',' ','#',' ','#','#','#',' '],
+  + ['#',' ',' ',' ','#',' ','#','T','#',' '],
+  + ['#',' ','B','B','#',' ','#','T','#',' '],
+  + ['#',' ','B',' ','#',' ','#','T','#',' '],
+    ['#','#','#',' ','#','#','#',' ','#',' '],
+    [' ','#','#',' ',' ',' ',' ',' ','#',' '],
+    [' ','#',' ',' ',' ','#',' ',' ','#',' '],
+    [' ','#',' ',' ',' ','#','#','#','#',' '],
+    [' ','#','#','#','#','#',' ',' ',' ',' '],
+    [' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
+  ];</code></pre>
+
+  Update the level parsing code block:
+
+  <pre><code class="language-diff-javascript diff-highlight">switch (cell) {
+    case '#':
+      nextState[x][y] = 'wall';
+      break;
+    case '@':
+      nextState[x][y] = 'player';
+      player.x = x;
+      player.y = y;
+      break;
+    case 'B':
+      nextState[x][y] = 'box';
+      break;
+  + case 'T':
+  +   nextState[x][y] = 'target';
+  +   break;
+  }</code></pre>
+
+  <!-- image of targets -->
+
+  The targets are now displayed in the level, but they behave in the same way as a wall &mdash; when the player tries to move on to them, the game checks if the space is empty, and since it's not, prevents movement. I'd expect these targets to behave in a similar way to empty spaces &mdash; we should be able to move over them, as well as push boxes on top of them. In order to do that, update the collision detection code to allow movement over empty cells _and_ targets.
+
+  <pre><code class="language-diff-javascript diff-highlight">+ if (Waffle.isEmpty(state[playerNext.x][playerNext.y]) || state[playerNext.x][playerNext.y] === 'target') {
+    // player movement code here
+  } else if (state[playerNext.x][playerNext.y] === 'box') {
+    // determine the box's next position
+    const boxNext = {
+      x: playerNext.x + move.x,
+      y: playerNext.y + move.y
+    };
+
+    // is next position for the box open?
+  + if (Waffle.isEmpty(state[boxNext.x][boxNext.y]) || state[boxNext.x][boxNext.y] === 'target') {
+      // move the box
+      state[boxNext.x][boxNext.y] = 'box';
+
+      // player movement code here</code></pre>
+
+  This is starting to get a little verbose &mdash; those conditional lines are pretty long &mdash; so we can extract a helper function to simplify things. Add this function to the end of `game.js`.
+
+  <pre><code class="language-diff-javascript diff-highlight">const canMoveTo = (point) => {
+    const state = Waffle.state;
+
+    return Waffle.isEmpty(state[point.x][point.y]) || state[point.x][point.y] === 'target';
+  };
+  </code></pre>
+
+  And replace the super long conditional statements like so:
+
+  <pre><code class="language-diff-javascript diff-highlight">+ if (canMoveTo(playerNext)) {
+    // player movement code here
+  } else if (state[playerNext.x][playerNext.y] === 'box') {
+    // determine the box's next position
+    const boxNext = {
+      x: playerNext.x + move.x,
+      y: playerNext.y + move.y
+    };
+
+    // is next position for the box open?
+  + if (canMoveTo(boxNext)) {
+      // move the box
+      state[boxNext.x][boxNext.y] = 'box';
+
+      // player movement code here
+  </code></pre>
 
   ----------------
 
