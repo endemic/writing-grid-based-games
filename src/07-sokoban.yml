@@ -6,26 +6,25 @@ content: |
 
   As always, [download the Waffle source](https://github.com/endemic/waffle/releases/latest), which has a `game.js` template file with some example code. You can then open the `index.html` file (**File &rarr; Open File &rarr; index.html**) in a browser and have the game run instantly.
 
-  The template is set up to initialize a 10x10 grid. This is a reasonable size for a basic sokoban level, so we'll keep those dimensions. The first step in making the game will be to draw walls in the level. You should know the drill by now &mdash; any string you store in the grid will be used as a CSS class in the resulting HTML. So any image you want to represent a game object should have a rule in the `main.css` file.
+  The template is set up to initialize a 10x10 grid. This is a reasonable size for a basic sokoban level, so we'll keep those dimensions. The first step in making the game will be to draw walls in the level. You should know the drill by now &mdash; any string you store in the grid will be used as a CSS class in the resulting HTML. So any image you want to represent a game object should have a rule in the `main.css` file. We're gonna start the game by drawing level walls, so remove the `highlight` class, and add `wall`.
 
   <pre><code class="language-diff-css diff-highlight">#grid {
     /* omitted for brevity */
 
-    - .highlight {
-    -   background-color: blueviolet;
-    - }
-    + .wall {
-    +   background: url('wall.png') center/100%;
-    + }
+  -   .highlight {
+  -     background-color: blueviolet;
+  -   }
+  +   .wall {
+  +     background: url('wall.png') center/100%;
+  +   }
   }</code></pre>
 
-  Make your own graphics if you want, otherwise you can [download some.](assets/sokoban/images.zip)
+  We'll eventually need images to represent walls, boxes, targets, and the player. Make your own if you want, otherwise you can [download some.](assets/sokoban/images.zip)
 
   Now we have to figure out what we want the level to look like. I guess normally you'd have some sort of fancy data structure for storing levels, but here we're gonna just use a 2D array. One benefit of this is being able to edit the level directly in your source file. In this array, a space will be an empty area, and a `#` will be a wall. After the call to `Waffle.init`, add the level data.
 
   <pre><code class="language-diff-javascript diff-highlight">Waffle.init(rows, columns);
 
-  // hard code the level
   + const level = [
   +   ['#','#','#','#','#',' ',' ',' ',' ',' '],
   +   ['#',' ',' ',' ','#',' ','#','#','#',' '],
@@ -39,10 +38,13 @@ content: |
   +   [' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
   + ];</code></pre>
 
-  Now we need to take that data and display it in the game, by injecting it into Waffle's grid. We're converting the `#` symbol into the string `'wall'`, just so that it's easier to see how the level will look when each grid cell is a single character. To do that we'll loop over each (x,y) position of the level data, and set the corresponding value in Waffle's `state`. After the `level` variable, add the following:
+  Now we need to take that data and display it in the game, by injecting it into Waffle's grid. We're converting the `#` symbol into the string `'wall'`, just so that it's easier to see how the level will look when each grid cell is a single character. To do that we'll loop over each `(x, y)` position of the level data, and set the corresponding value in Waffle's `state`. After the `level` variable, add the following:
 
-  <pre><code class="language-diff-javascript diff-highlight">+ const nextState = Waffle.state;
-
+  <pre><code class="language-diff-javascript diff-highlight">  [' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
+  ];
+  +
+  + const nextState = Waffle.state;
+  +
   + for (let x = 0; x < Waffle.columns; x += 1) {
   +   for (let y = 0; y < Waffle.rows; y += 1) {
   +     const cell = level[x][y];
@@ -53,6 +55,7 @@ content: |
   +       case '#':
   +         nextState[x][y] = 'wall';
   +         break;
+  +     }
   +   }
   + }
   +
@@ -76,16 +79,14 @@ content: |
     ]
   </code></pre>
 
-  You can see that this loop inverts the `(x, y)` values. We can solve the problem in one of two ways.
+  You can see that this loop inverts the `(x, y)` values. We can solve the problem by also inverting the way we use the `x` and `y` variables to access the level data.
 
-  <pre><code class="language-diff-javascript diff-highlight">- for (let x = 0; x < Waffle.columns; x += 1) {
-  -   for (let y = 0; y < Waffle.rows; y += 1) {
-  // change the order of the loops
-  + for (let y = 0; y < Waffle.rows; y += 1) {
-  +   for (let x = 0; x < Waffle.columns; x += 1) {
-  -     const cell = level[x][y];
-  // _OR_ change the order of the array indexing
-  +     const cell = level[y][x];
+  <pre><code class="language-diff-javascript diff-highlight">for (let x = 0; x < Waffle.columns; x += 1) {
+    for (let y = 0; y < Waffle.rows; y += 1) {
+
+  -   const cell = level[x][y];
+  +   // change the order of the array indexing
+  +   const cell = level[y][x];
 
       // evaluate the simplifed text contents of the
       // level data and set the state of the grid
@@ -96,7 +97,12 @@ content: |
     }
   }</code></pre>
 
-  Waffle uses the first solution when mapping its `state` variable to the HTML on the page, so we can use `x` and `y` to access grid values like you would expect.
+  Waffle uses a similar solution when mapping its `state` variable to the HTML on the page, so that we can use `x` and `y` to access grid values in the normal way.
+
+  <figure>
+    <img src="assets/sokoban/example_2.png" alt="correct level orientation">
+    <figcaption>correct level orientation</figcaption>
+  </figure>
 
   The next thing we can add is the player. We'll take a page out of [roguelike games](https://en.wikipedia.org/wiki/Roguelike) and use `@` to represent the player's starting location in the level.
 
@@ -150,9 +156,12 @@ content: |
 
   Reload, and the player should appear in the level.
 
-  <!-- graphic here -->
+  <figure>
+    <img src="assets/sokoban/example_3.png" alt="a player appears!">
+    <figcaption>a player appears!</figcaption>
+  </figure>
 
-  Now we need to move the player around. To that end, we'll add some code to the `Waffle.onKeyDown` callback function that's already in `game.js`. Normally when updating a player object, we'd just directly change its `(x, y)` values. But since I know a little more about the functionality we have to write next, we're going to start off making things slightly more complicated. The reason for this is that we need to take box-pushing into account. If the player moves into a box, we want to move the box to the next open space. But in order to do that, we need to know the direction the player is moving; e.g. it's easier to add a `{x: 0, y: 1}` value to both the player _and_ the box, rather than have to determine that same value after each movement by subtracting the player's new position from the old.
+  Now we need to move the player around. To that end, we'll add some code to the `Waffle.onKeyDown` callback function that's already in `game.js`. Normally when updating a player object, we'd just directly change its `(x, y)` position. But since I can see the future, and know a little more about the functionality we have to write next, we're going to start off making things slightly more complicated. The reason for this is that we need to take box-pushing into account. If the player moves into a box, we want to move the box to the next open space. But in order to do that, we need to know the direction the player is moving; e.g. it's easier to add a `{x: 0, y: 1}` value to both the player _and_ the box, rather than have to determine that same value after each movement by subtracting the player's new position from the old.
 
   <pre><code class="language-diff-javascript diff-highlight">Waffle.onKeyDown(({ key }) => {
   - console.log(`pressed ${key}`);
@@ -196,7 +205,10 @@ content: |
 
   You can see here that we take keyboard input from `w`, `a`, `s`, `d` and determine a `move` vector based on that. Then we can calculate the player's next position, and update the display.
 
-  <!-- image here -->
+  <figure>
+    <img src="assets/sokoban/example_4.gif" alt="player movement">
+    <figcaption>player movement"></figcaption>
+  </figure>
 
   You'll notice, of course, that the player can move through walls, destroying them at the same time. Before blindly moving the player, we can check to see if the destination contains a wall. Let's add a condition to check if the new position already had an object in it using `Waffle.isEmpty`.
 
@@ -218,8 +230,6 @@ content: |
   Waffle.state = state;</code></pre>
 
   Save the source file, reload the page, and voilà! Now the player is blocked by walls, as we would expect.
-
-  <!-- image -->
 
   Next, let's add boxes! Hoo boy, things are getting exciting now! Use `B` to represent a Box. We'll create three of them in this level.
 
@@ -320,7 +330,10 @@ content: |
 
   Awesome, the player can now push boxes around! If you open the browser's development console, you can also see a message printed if the box is blocked by a wall or another box.
 
-  <!-- image of player moving boxes -->
+  <figure>
+    <img src="assets/sokoban/example_5.gif" alt="pushin' boxes all day">
+    <figcaption>pushin' boxes all day</figcaption>
+  </figure>
 
   Now that boxes can be moved, we need to add targets &mdash; the raison d'être for this game. Once all the targets have boxes on them, the level is completed. In a stoke of genius, we'll use the character `T` to represent a target in the level data.
 
@@ -357,7 +370,29 @@ content: |
   +   break;
   }</code></pre>
 
-  <!-- image of targets -->
+  And add the CSS class to `main.css`:
+
+    <pre><code class="language-diff-css diff-highlight">#grid {
+    /* omitted for brevity */
+
+    .wall {
+      background: url('wall.png') center/100%;
+    }
+    .player {
+      background: url('player.png') center/100%;
+    }
+    .box {
+      background: url('box.png') center/100%;
+    }
+  + .target {
+  +   background: url('target.png') center/100%;
+  + }
+  }</code></pre>
+
+    figure>
+    <img src="assets/sokoban/example_6.png" alt="targets added">
+    <figcaption>targets added"></figcaption>
+  </figure>
 
   The targets are now displayed in the level, but they behave in the same way as a wall &mdash; when the player tries to move on to them, the game checks if the space is empty, and since it's not, prevents movement. I'd expect these targets to behave in a similar way to empty spaces &mdash; we should be able to move over them, as well as push boxes on top of them. In order to do that, update the collision detection code to allow movement over empty cells _and_ targets.
 
@@ -405,7 +440,12 @@ content: |
       // player movement code here
   </code></pre>
 
-  This now lets the player move over targets, as well as move boxes over them. There's a new problem now, though &mash; once you move over a target, then move off it, it disappears! This is because the player object overwrites the target in the game state. Waffle is so simple that it doesn't have a way to persist overlapping objects. The moving object overwrites whatever was there previously. In Sokoban, this is a problem because both the player and boxes can move over top of box targets, which need to re-appear if the player or box moves back off again. To fix this, we can to store the location of targets in a separate data structure instead of just in `Waffle.state`.
+  <figure>
+    <img src="assets/sokoban/example_7.gif" alt="targets disappear when moving over them">
+    <figcaption>targets disappear when moving over them</figcaption>
+  </figure>
+
+  This now lets the player move over targets, as well as move boxes over them. There's a new problem now, though &mdash; once you move over a target, then move off it, it disappears! This is because the player object overwrites the target in the game state. Waffle is so simple that it doesn't have a way to persist overlapping objects. The moving object overwrites whatever was there previously. In Sokoban, this is a problem because both the player and boxes can move over top of box targets, which need to re-appear if the player or box moves back off again. To fix this, we can to store the location of targets in a separate data structure instead of just in `Waffle.state`.
 
   Add a new array named `targets` next to the `player` variable:
 
@@ -448,6 +488,11 @@ content: |
 
   Waffle.state = state;</code></pre>
 
+  <figure>
+    <img src="assets/sokoban/example_8.gif" alt="targets reappear">
+    <figcaption>targets reappear</figcaption>
+  </figure>
+
   At this point, we're very close to having all the features we need for the game to be playable. The player can move, can push boxes, and we have targets for each box. The last thing we need is for the game to check whether or not the level has been completed; e.g. a box on top of each target. Fortunately, since we had to store the position of each target in order to re-draw them, we can use that same variable to check to see if those spaces are covered by boxes.
 
   <pre><code class="language-diff-javascript diff-highlight">const hasWonGame = () => {
@@ -470,162 +515,9 @@ content: |
   +  Waffle.alert('Congratulations!');
   + }</code></pre>
 
-  <!-- screenshot of game over -->
+  <figure>
+    <img src="assets/sokoban/example_9_gif" alt="the completed level">
+    <figcaption>the completed level"></figcaption>
+  </figure>
 
   And there it is, a basic Sokoban game. Next steps might be to build a level editor, or you can stick with making levels by hand in your text editor. It's relatively quick to build out the logic for these sorts of games; the time-consuming bit is creating interesting levels. Good luck!
-
-  ----------------
-
-  1. Draw walls
-  2. Draw player
-  3. Player movement
-  4. Draw boxes/goals
-  5. Move boxes
-  6. Win condition/reset
-
-  ```javascript
-  const rows = 10;
-  const columns = 10;
-
-  Waffle.init(rows, columns);
-
-  // hard code the level
-  const level = [
-    ['#','#','#','#','#',' ',' ',' ',' ',' '],
-    ['#','@',' ',' ','#',' ','#','#','#',' '],
-    ['#',' ','B','B','#',' ','#','x','#',' '],
-    ['#',' ','B',' ','#',' ','#','x','#',' '],
-    ['#','#','#',' ','#','#','#','x','#',' '],
-    [' ','#','#',' ',' ',' ',' ',' ','#',' '],
-    [' ','#',' ',' ',' ','#',' ',' ','#',' '],
-    [' ','#',' ',' ',' ','#','#','#','#',' '],
-    [' ','#','#','#','#','#',' ',' ',' ',' '],
-    [' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],
-  ];
-
-  const player = {x: 0, y: 0};
-
-  // waffle is so simple that it doesn't have a way to persist overlapping
-  // objects. The moving object overwrites whatever was there previously. In sokoban,
-  // this is a problem because both the player and boxes can move over top of box targets,
-  // which need to re-appear if the player or box moves back off again. Therefore, we need
-  // to store the location of targets in a separate data structure instead of just in `Waffle.state`
-  const targets = [];
-
-  const nextState = Waffle.state;
-
-  for (let x = 0; x < Waffle.columns; x += 1) {
-    for (let y = 0; y < Waffle.rows; y += 1) {
-      // note the reversed order of x and y
-      // allows us to have a 2d array that looks the same in the code
-      const cell = level[y][x];
-
-      // evaluate the simplifed text contents of the level
-      // and set the state of the grid
-      switch (cell) {
-        case 'B':
-          nextState[x][y] = 'box';
-          break;
-        case '#':
-          nextState[x][y] = 'wall';
-          break;
-        case 'x':
-          nextState[x][y] = 'target';
-          targets.push({x, y});
-          break;
-        case '@':
-          nextState[x][y] = 'player';
-          player.x = x;
-          player.y = y;
-          break;
-      }
-    }
-  }
-
-  Waffle.state = nextState;
-
-  Waffle.onKeyDown(({ key }) => {
-    const move = {x: 0, y: 0};
-
-    switch (key) {
-      case 'w':
-        move.y -= 1;
-        break;
-      case 's':
-        move.y += 1;
-        break;
-      case 'a':
-        move.x -= 1;
-        break;
-      case 'd':
-        move.x += 1;
-        break;
-    }
-
-    const playerNext = {
-      x: player.x + move.x,
-      y: player.y + move.y
-    };
-
-    const state = Waffle.state;
-
-    // TODO: not sure this makes things clearer; uses scope access of `state` variable
-    const movePlayer = (destination) => {
-      // remove the player from the old position
-      state[player.x][player.y] = '';
-
-      // update location data
-      player.x = destination.x;
-      player.y = destination.y;
-
-      // put player in new position
-      state[player.x][player.y] = 'player';
-    };
-
-    if (canMoveTo(playerNext)) {
-      movePlayer(playerNext);
-    } else if (state[playerNext.x][playerNext.y] === 'box') {
-
-      // figure out if the box is blocked or not
-      const boxNext = {
-        x: playerNext.x + move.x,
-        y: playerNext.y + move.y
-      };
-
-      if (canMoveTo(boxNext)) {
-        // move the box
-        state[boxNext.x][boxNext.y] = 'box';
-
-        // the player will overwrite the box's previous position
-        movePlayer(playerNext);
-      } else {
-        console.log(`Can't move box; blocked by ${state[boxNext.x][boxNext.y]}`);
-      }
-    }
-
-    // ensure targets are re-displayed if player/box moves off them
-    for (const t of targets) {
-      if (Waffle.isEmpty(state[t.x][t.y])) {
-        state[t.x][t.y] = 'target';
-      }
-    }
-
-    Waffle.state = state;
-
-    if (hasWonGame()) {
-      alert('u win');
-    }
-  });
-
-  const canMoveTo = (point) => {
-    const state = Waffle.state;
-
-    return Waffle.isEmpty(state[point.x][point.y]) || state[point.x][point.y] === 'target';
-  };
-
-  const hasWonGame = () => {
-    const state = Waffle.state;
-
-    return targets.every(t => state[t.x][t.y] === 'box');
-  };
-  ```
