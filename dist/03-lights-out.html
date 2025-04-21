@@ -27,7 +27,7 @@
       <section class="text">
         <p><a href="https://en.wikipedia.org/wiki/Lights_Out_(game)">Lights Out</a> was a game made by Tiger Electronics (known for their crappy LCD handhelds) back in 1995. The concept was that a grid of backlit buttons could be pressed by the player. The grid was initialized with randomly lit buttons, and the goal was to “turn off” all the lights. Pressing a lit button turns it off, but also causes the four adjacent buttons to turn on.</p>
 
-<p>This sort of game is perfect to re-implement in waffle. First, <a href="https://github.com/endemic/waffle/releases/latest">download Waffle</a>, which includes an <code>index.html</code> file that automatically loads the necessary JavaScript and CSS files. Next, open the <code>game.js</code> file in a text editor; you’ll see that there is some example code there already which initializes a 10x10 grid, and sets up a simple event handler to toggle grid cell background colors. The first thing we can do is change the grid size to a 5x5 board.</p>
+<p>This sort of game is perfect to re-implement in Waffle. First, <a href="https://github.com/endemic/waffle/releases/latest">download Waffle</a>, which includes an <code>index.html</code> file that automatically loads the necessary JavaScript and CSS files. Next, open the <code>game.js</code> file in a text editor; you’ll see that there is some example code there already which initializes a 10x10 grid, and sets up a simple event handler to toggle grid cell background colors. The first thing we can do is change the grid size to a 5x5 board.</p>
 
 <pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
 - const columns = 10;
@@ -157,7 +157,7 @@ Waffle.onPointDown(({ x, y }) =&gt; {
   Waffle.state = newState;
 
 + if (hasWonGame()) {
-+   delayedAlert('You win!!');
++   Waffle.alert('You win!!');
 + }
 });
 </code></pre>

@@ -206,16 +206,3 @@ content: |
   </figure>
 
   And that's it! You've created a version of tic-tac-toe that's playable via a web browser. This sets the stage for making more complicated games in the future.
-
-  ### Postscript
-  <a name="delayedAlert"></a>
-
-  You may notice that when an `alert` window pops up after clicking a square on the grid, you don't actually see the square update with an _X_ or _O_ until _after_ you click "OK." This is because `alert` windows stop any other code from running until it is dismissed. A dumb hack you can use to get around this is delay the `alert` until after existing code has been run, by using [setTimeout](https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout):
-
-  <pre><code class="language-javascript">const delayedAlert = message => {
-    setTimeout(() => {
-      alert(message);
-    }, 0);
-  };</code></pre>
-
-  Since the delay is `0`, the alert basically runs immediately, but it waits until any existing code is finished executing. Now replace all your calls to `alert` with `delayedAlert`, and you'll see the UI update before the alert message appears.

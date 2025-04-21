@@ -229,19 +229,6 @@ Waffle.onPointDown(({ x, y }) =&gt; {</code></pre>
 
 <p>And that’s it! You’ve created a version of tic-tac-toe that’s playable via a web browser. This sets the stage for making more complicated games in the future.</p>
 
-<h3 id="postscript">Postscript</h3>
-<p><a name="delayedAlert"></a></p>
-
-<p>You may notice that when an <code>alert</code> window pops up after clicking a square on the grid, you don’t actually see the square update with an <em>X</em> or <em>O</em> until <em>after</em> you click “OK.” This is because <code>alert</code> windows stop any other code from running until it is dismissed. A dumb hack you can use to get around this is delay the <code>alert</code> until after existing code has been run, by using <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout">setTimeout</a>:</p>
-
-<pre><code class="language-javascript">const delayedAlert = message =&gt; {
-  setTimeout(() =&gt; {
-    alert(message);
-  }, 0);
-};</code></pre>
-
-<p>Since the delay is <code>0</code>, the alert basically runs immediately, but it waits until any existing code is finished executing. Now replace all your calls to <code>alert</code> with <code>delayedAlert</code>, and you’ll see the UI update before the alert message appears.</p>
-
       </section>
 
     </div>  <!-- /.container -->

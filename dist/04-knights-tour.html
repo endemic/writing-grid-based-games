@@ -331,7 +331,7 @@ Waffle.onPointDown(({ x, y }) =&gt; {
 + };
 </code></pre>
 
-<p>This method can then be used at the very end of the <code>onPointDown</code> method, to display a message to the player if they manage to traverse the entire board (using the <code>delayedAlert</code> function we created in the <a href="01-tic-tac-toe.html#delayedAlert">first tutorial</a>).</p>
+<p>This method can then be used at the very end of the <code>onPointDown</code> method, to display a message to the player if they manage to traverse the entire board.</p>
 
 <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }) =&gt; {
   // ...omitted for brevity
@@ -339,7 +339,7 @@ Waffle.onPointDown(({ x, y }) =&gt; {
   Waffle.state = newState;
 
 + if (hasWonGame()) {
-+   delayedAlert('Congratulations!');
++   Waffle.alert('Congratulations!');
 + }
 };
 </code></pre>
