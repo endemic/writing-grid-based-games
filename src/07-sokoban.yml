@@ -405,6 +405,75 @@ content: |
       // player movement code here
   </code></pre>
 
+  This now lets the player move over targets, as well as move boxes over them. There's a new problem now, though &mash; once you move over a target, then move off it, it disappears! This is because the player object overwrites the target in the game state. Waffle is so simple that it doesn't have a way to persist overlapping objects. The moving object overwrites whatever was there previously. In Sokoban, this is a problem because both the player and boxes can move over top of box targets, which need to re-appear if the player or box moves back off again. To fix this, we can to store the location of targets in a separate data structure instead of just in `Waffle.state`.
+
+  Add a new array named `targets` next to the `player` variable:
+
+  <pre><code class="language-diff-javascript diff-highlight">const player = {x: 0, y: 0};
+  + const targets = [];
+  </code></pre>
+
+  Then we can add each target to that list:
+
+  <pre><code class="language-diff-javascript diff-highlight">switch (cell) {
+    case '#':
+      nextState[x][y] = 'wall';
+      break;
+    case '@':
+      nextState[x][y] = 'player';
+      player.x = x;
+      player.y = y;
+      break;
+    case 'B':
+      nextState[x][y] = 'box';
+      break;
+    case 'T':
+      nextState[x][y] = 'target';
+  +   targets.push({x, y});
+      break;
+  }</code></pre>
+
+  Then ensure that the targets are re-drawn if necessary, in `Waffle.onKeyDown`:
+
+  <pre><code class="language-diff-javascript diff-highlight">const state = Waffle.state;
+
+  /* movement code here */
+
+  + // re-display targets if player/box moves off them
+  + for (const t of targets) {
+  +   if (Waffle.isEmpty(state[t.x][t.y])) {
+  +     state[t.x][t.y] = 'target';
+  +   }
+  + }
+
+  Waffle.state = state;</code></pre>
+
+  At this point, we're very close to having all the features we need for the game to be playable. The player can move, can push boxes, and we have targets for each box. The last thing we need is for the game to check whether or not the level has been completed; e.g. a box on top of each target. Fortunately, since we had to store the position of each target in order to re-draw them, we can use that same variable to check to see if those spaces are covered by boxes.
+
+  <pre><code class="language-diff-javascript diff-highlight">const hasWonGame = () => {
+    const state = Waffle.state;
+
+    return targets.every(t => state[t.x][t.y] === 'box');
+  };</code></pre>
+
+  Add this function to `game.js`, and use it at the end of `Waffle.onKeyDown` like so:
+
+  <pre><code class="language-diff-javascript diff-highlight">for (const t of targets) {
+    if (Waffle.isEmpty(state[t.x][t.y])) {
+      state[t.x][t.y] = 'target';
+    }
+  }
+
+  Waffle.state = state;
+
+  + if (hasWonGame()) {
+  +  Waffle.alert('Congratulations!');
+  + }</code></pre>
+
+  <!-- screenshot of game over -->
+
+  And there it is, a basic Sokoban game. Next steps might be to build a level editor, or you can stick with making levels by hand in your text editor. It's relatively quick to build out the logic for these sorts of games; the time-consuming bit is creating interesting levels. Good luck!
+
   ----------------
 
   1. Draw walls
