@@ -74,8 +74,8 @@ content: |
   -   console.log(`pressed ${key}`);
   - });
 
-  Waffle.onPointDown(({ x, y }) => {
-    console.debug(`clicked grid cell (${x}, ${y})`);
+  Waffle.onPointDown(({ x, y }, { primary, secondary }) => {
+    console.log(`${secondary ? 'right' : 'left'}-clicked cell (${x}, ${y})`);
 
   - /* replace this with your own code! */
   - const nextState = Waffle.state;
@@ -90,7 +90,14 @@ content: |
   });
   </code></pre>
 
-  Save, then reload `index.html` in your browser. If you have the developer tools open (**Tools &rarr; Browser Tools &rarr; Web Developer Tools** in Firefox) and click around in the grid, you'll see the debug message with the (x, y) values of the tile you clicked. Now we can get on to adding some actual game logic. What we want to do is check if any of the tiles next to the one we clicked is `empty`. For this type of game, we only have to check in the four cardinal directions, like so (imagine `x` is the clicked tile):
+  Save, then reload `index.html` in your browser. If you have the developer tools open (**Tools &rarr; Browser Tools &rarr; Web Developer Tools** in Firefox) and click around in the grid, you'll see the debug message with the (x, y) values of the tile you clicked.
+  
+  <figure>
+    <img src="assets/puzzle/example_1.png" alt="randomly placed tiles">
+    <figcaption>randomly placed tiles</figcaption>
+  </figure>
+  
+  Now we can get on to adding some actual game logic. What we want to do is check if any of the tiles next to the one we clicked is `empty`. For this type of game, we only have to check in the four cardinal directions, like so (imagine `x` is the clicked tile):
 
   <pre><code>[ ][ ][ ][ ]
   [ ][*][ ][ ]
@@ -100,8 +107,8 @@ content: |
 
   Waffle.js has yet another "helper" function that can get the `(x, y)` values of those neighbors &mdash; named, appropriately enough, `Waffle.getNeighbors`. It will return an array of the four neighboring cells. Note however that it won't return cells that are outside the bounds of the grid (for example, if you click in a corner). We can run this function when a player clicks the grid, then check if any of the neighboring tiles are empty. If one of them is, we will swap values between that empty tile and the one the player touched. This gives the illusion of tiles sliding around the grid.
 
-  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }) => {
-    console.debug(`clicked grid cell (${x}, ${y})`);
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }, { primary, secondary }) => {
+    console.log(`${secondary ? 'right' : 'left'}-clicked cell (${x}, ${y})`);
 
   + const nextState = Waffle.state;
   + const neighbors = Waffle.getNeighbors({ x, y });
@@ -126,7 +133,14 @@ content: |
   });
   </code></pre>
 
-  Save the `game.js` file and reload the page. You should now be able to click numbers next to the empty cell, and watch them move around. This is all the functionality that is required to successfully solve the puzzle! However, it would be nice to provide the player some sort of confirmation that they finished the game. To that end, we can write up a function that checks whether or not the contents of each grid cell is sorted. A quick way to do this is to make an array of strings with the tile values (similar to the one we used to initialize the game board), then compare the contents of each grid cell with the corresponding value of an incrementing index. For example, the cell at (0, 0) should be `one`, the cell at (1, 0) should be `two`, etc. Add the following function anywhere in `game.js`:
+  Save the `game.js` file and reload the page. You should now be able to click numbers next to the empty cell, and watch them move around. This is all the functionality that is required to successfully solve the puzzle!
+  
+  <figure>
+    <img src="assets/puzzle/example_2.gif" alt="moving tiles in the puzzle">
+    <figcaption>moving tiles in the puzzle</figcaption>
+  </figure>
+  
+  However, it would be nice to provide the player some sort of confirmation that they finished the game. To that end, we can write up a function that checks whether or not the contents of each grid cell is sorted. A quick way to do this is to make an array of strings with the tile values (similar to the one we used to initialize the game board), then compare the contents of each grid cell with the corresponding value of an incrementing index. For example, the cell at (0, 0) should be `one`, the cell at (1, 0) should be `two`, etc. Add the following function anywhere in `game.js`:
 
   <pre><code class="language-diff-javascript diff-highlight">+ const hasWonGame = () => {
   +   const state = Waffle.state;
@@ -164,10 +178,15 @@ content: |
     }
   +
   + if (hasWonGame()) {
-  +   alert('Congratulations, a winner is you!');
+  +   Waffle.alert('Congratulations, a winner is you!');
   + }
 
   });</code></pre>
+
+  <figure>
+    <img src="assets/puzzle/example_3.png" alt="a solved puzzle">
+    <figcaption>a solved puzzle</figcaption>
+  </figure>
 
   We now have a completed 15 puzzle game! Now you can get frustrated for hours on end by trying to make the last few numbers move to the correct spaces.
 
