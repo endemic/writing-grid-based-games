@@ -1,6 +1,7 @@
-title: Game &#35;6&#58; Minesweeper
+title: Minesweeper
 author: Nathan Demick
-description: Make a "Minesweeper" game with Waffle
+description: Learn how to write a web-based ‟Minesweeper” game using Waffle, a free JavaScript game library.
+og_image: /writing-grid-based-games/assets/minesweeper/og_image.gif
 content: |
   One of the classic time-wasting games that lots of people have fond memories of is Minesweeper; particularly the [Microsoft version](https://en.wikipedia.org/wiki/Microsoft_Minesweeper). Since it was included in Windows 3.1, it was one of those games that you could always count on when you might have access to an unfamiliar PC. Although, I have a personal confession: I always played Solitaire or Hearts, rather than Minesweeper. I never took the time to really learn how to play the game! Nevertheless, Minesweeper is a classic example of a grid-based game, and one that is a great candidate for making yourself.
 

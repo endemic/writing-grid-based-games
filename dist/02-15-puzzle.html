@@ -4,13 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Game &#35;2&#58; 15 Puzzle | Ganbaru Games</title>
+    <title>15 Puzzle | Ganbaru Games</title>
 
-    <meta name="description" content="Make a "15 Puzzle" game with Waffle">
+    <meta name="description" content="Learn how to write a web-based ‟15 Puzzle” game using Waffle, a free JavaScript game library.">
     <meta name="author" content="Nathan Demick">
 
-    <meta property="og:title" content="Game &#35;2&#58; 15 Puzzle" />
-    <meta property="og:description" content="Make a "15 Puzzle" game with Waffle" />
+    <meta property="og:title" content="15 Puzzle" />
+    <meta property="og:description" content="Learn how to write a web-based ‟15 Puzzle” game using Waffle, a free JavaScript game library." />
+    <meta property="og:image" content="/writing-grid-based-games/assets/puzzle/og_image.gif" />
 
     <link rel="stylesheet" href="https://ganbaru.games/assets/stylesheets/main.css">
     <link rel="shortcut icon" href="https://ganbaru.games/assets/images/henohenomoheji.png" type="image/png">
@@ -22,7 +23,7 @@
     <h1><span class="henohenomoheji"></span>Ganbaru Games</h1>
 
     <div class="container">
-      <h2>Game &#35;2&#58; 15 Puzzle</h2>
+      <h2>15 Puzzle</h2>
 
       <section class="text">
         <p>If you’ve ever played around with <a href="https://infinitemac.org/">old versions of Mac OS</a>, you’ll be familiar with the concept of “desk accessories.” These were small programs that could run alongside the currently running main app (the original Mac OS could only run one program at a time). One of the desk accessories was an implementation of the classic “<a href="https://en.wikipedia.org/wiki/15_puzzle">15 puzzle</a>”, programmed by <a href="https://www.folklore.org/StoryView.py?project=Macintosh&amp;story=Puzzle.txt">Andy Hertzfeld</a>. Another example of this type of puzzle is an <a href="https://finalfantasy.fandom.com/wiki/15_Puzzle">easter egg</a> in the classic NES game, Final Fantasy.</p>
@@ -97,8 +98,8 @@ Waffle.update(nextState);
 -   console.log(`pressed ${key}`);
 - });
 
-Waffle.onPointDown(({ x, y }) =&gt; {
-  console.debug(`clicked grid cell (${x}, ${y})`);
+Waffle.onPointDown(({ x, y }, { primary, secondary }) =&gt; {
+  console.log(`${secondary ? 'right' : 'left'}-clicked cell (${x}, ${y})`);
 
 - /* replace this with your own code! */
 - const nextState = Waffle.state;
@@ -113,7 +114,14 @@ Waffle.onPointDown(({ x, y }) =&gt; {
 });
 </code></pre>
 
-<p>Save, then reload <code>index.html</code> in your browser. If you have the developer tools open (<strong>Tools → Browser Tools → Web Developer Tools</strong> in Firefox) and click around in the grid, you’ll see the debug message with the (x, y) values of the tile you clicked. Now we can get on to adding some actual game logic. What we want to do is check if any of the tiles next to the one we clicked is <code>empty</code>. For this type of game, we only have to check in the four cardinal directions, like so (imagine <code>x</code> is the clicked tile):</p>
+<p>Save, then reload <code>index.html</code> in your browser. If you have the developer tools open (<strong>Tools → Browser Tools → Web Developer Tools</strong> in Firefox) and click around in the grid, you’ll see the debug message with the (x, y) values of the tile you clicked.</p>
+
+<figure>
+  <img src="assets/puzzle/example_1.png" alt="randomly placed tiles" />
+  <figcaption>randomly placed tiles</figcaption>
+</figure>
+
+<p>Now we can get on to adding some actual game logic. What we want to do is check if any of the tiles next to the one we clicked is <code>empty</code>. For this type of game, we only have to check in the four cardinal directions, like so (imagine <code>x</code> is the clicked tile):</p>
 
 <pre><code>[ ][ ][ ][ ]
 [ ][*][ ][ ]
@@ -123,8 +131,8 @@ Waffle.onPointDown(({ x, y }) =&gt; {
 
 <p>Waffle.js has yet another “helper” function that can get the <code>(x, y)</code> values of those neighbors — named, appropriately enough, <code>Waffle.getNeighbors</code>. It will return an array of the four neighboring cells. Note however that it won’t return cells that are outside the bounds of the grid (for example, if you click in a corner). We can run this function when a player clicks the grid, then check if any of the neighboring tiles are empty. If one of them is, we will swap values between that empty tile and the one the player touched. This gives the illusion of tiles sliding around the grid.</p>
 
-<pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }) =&gt; {
-  console.debug(`clicked grid cell (${x}, ${y})`);
+<pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }, { primary, secondary }) =&gt; {
+  console.log(`${secondary ? 'right' : 'left'}-clicked cell (${x}, ${y})`);
 
 + const nextState = Waffle.state;
 + const neighbors = Waffle.getNeighbors({ x, y });
@@ -149,7 +157,14 @@ Waffle.onPointDown(({ x, y }) =&gt; {
 });
 </code></pre>
 
-<p>Save the <code>game.js</code> file and reload the page. You should now be able to click numbers next to the empty cell, and watch them move around. This is all the functionality that is required to successfully solve the puzzle! However, it would be nice to provide the player some sort of confirmation that they finished the game. To that end, we can write up a function that checks whether or not the contents of each grid cell is sorted. A quick way to do this is to make an array of strings with the tile values (similar to the one we used to initialize the game board), then compare the contents of each grid cell with the corresponding value of an incrementing index. For example, the cell at (0, 0) should be <code>one</code>, the cell at (1, 0) should be <code>two</code>, etc. Add the following function anywhere in <code>game.js</code>:</p>
+<p>Save the <code>game.js</code> file and reload the page. You should now be able to click numbers next to the empty cell, and watch them move around. This is all the functionality that is required to successfully solve the puzzle!</p>
+
+<figure>
+  <img src="assets/puzzle/example_2.gif" alt="moving tiles in the puzzle" />
+  <figcaption>moving tiles in the puzzle</figcaption>
+</figure>
+
+<p>However, it would be nice to provide the player some sort of confirmation that they finished the game. To that end, we can write up a function that checks whether or not the contents of each grid cell is sorted. A quick way to do this is to make an array of strings with the tile values (similar to the one we used to initialize the game board), then compare the contents of each grid cell with the corresponding value of an incrementing index. For example, the cell at (0, 0) should be <code>one</code>, the cell at (1, 0) should be <code>two</code>, etc. Add the following function anywhere in <code>game.js</code>:</p>
 
 <pre><code class="language-diff-javascript diff-highlight">+ const hasWonGame = () =&gt; {
 +   const state = Waffle.state;
@@ -187,10 +202,15 @@ Waffle.onPointDown(({ x, y }) =&gt; {
   }
 +
 + if (hasWonGame()) {
-+   alert('Congratulations, a winner is you!');
++   Waffle.alert('Congratulations, a winner is you!');
 + }
 
 });</code></pre>
+
+<figure>
+  <img src="assets/puzzle/example_3.png" alt="a solved puzzle" />
+  <figcaption>a solved puzzle</figcaption>
+</figure>
 
 <p>We now have a completed 15 puzzle game! Now you can get frustrated for hours on end by trying to make the last few numbers move to the correct spaces.</p>
 

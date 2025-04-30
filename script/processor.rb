@@ -8,6 +8,7 @@ html_template = File.read('src/template.html')
 
 Dir.glob('src/*.yml').each do |file|
   puts "Processing #{file}"
+
   template_data = YAML.load_file(file)
 
   # mutate body to HTML

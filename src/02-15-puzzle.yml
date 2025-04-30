@@ -1,6 +1,7 @@
-title: Game &#35;2&#58; 15 Puzzle
+title: 15 Puzzle
 author: Nathan Demick
-description: Make a "15 Puzzle" game with Waffle
+description: Learn how to write a web-based ‟15 Puzzle” game using Waffle, a free JavaScript game library.
+og_image: /writing-grid-based-games/assets/puzzle/og_image.gif
 content: |
   If you've ever played around with [old versions of Mac OS](https://infinitemac.org/), you'll be familiar with the concept of "desk accessories." These were small programs that could run alongside the currently running main app (the original Mac OS could only run one program at a time). One of the desk accessories was an implementation of the classic "[15 puzzle](https://en.wikipedia.org/wiki/15_puzzle)", programmed by [Andy Hertzfeld](https://www.folklore.org/StoryView.py?project=Macintosh&story=Puzzle.txt). Another example of this type of puzzle is an [easter egg](https://finalfantasy.fandom.com/wiki/15_Puzzle) in the classic NES game, Final Fantasy.
 

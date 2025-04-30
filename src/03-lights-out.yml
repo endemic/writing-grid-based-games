@@ -1,6 +1,7 @@
-title: Game &#35;3&#58; Lights Out
+title: Lights Out
 author: Nathan Demick
-description: Make a "Lights Out" game with Waffle
+description: Learn how to write a web-based ‟Lights Out” game using Waffle, a free JavaScript game library.
+og_image: /writing-grid-based-games/assets/lights-out/og_image.gif
 content: |
   [Lights Out](https://en.wikipedia.org/wiki/Lights_Out_(game)) was a game made by Tiger Electronics (known for their crappy LCD handhelds) back in 1995. The concept was that a grid of backlit buttons could be pressed by the player. The grid was initialized with randomly lit buttons, and the goal was to "turn off" all the lights. Pressing a lit button turns it off, but also causes the four adjacent buttons to turn on.
 

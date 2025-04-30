@@ -1,6 +1,7 @@
-title: Game &#35;5&#58; Snake
+title: Snake
 author: Nathan Demick
-description: Make a "Snake" game with Waffle
+description: Learn how to write a web-based ‟Snake” game using Waffle, a free JavaScript game library.
+og_image: /writing-grid-based-games/assets/snake/og_image.gif
 content: |
   One classic genre for casual games is named, appropriately, "[Snake](https://en.wikipedia.org/wiki/Snake_(video_game_genre))." The basic idea of these sorts of games is that you control a snake, which gets ever longer. The challenge being that in order to score points, you move the snake across "apples" (is this some veiled Garden of Eden reference?) that increase the snake's length. The snake continually moves in whatever direction it is facing, and if the head touches any part of the body, you lose.
 

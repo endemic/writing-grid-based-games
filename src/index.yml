@@ -1,6 +1,7 @@
 title: Grid-based browser games
 author: Nathan Demick
-description: An introduction to making games using HTML and CSS
+description: An introduction to making web-based games using Waffle, a free JavaScript game library.
+og_image: /writing-grid-based-games/assets/og_image.png
 content: |
   Ever since people have had access to computers, they have written games for them. I'm sure we could discuss at length the psychology of play, and why electronic games are so compelling. My own theory is that writing game programs fulfills an innate creative need for world-building. There's just _something_ about setting up rules for an interactive environment, and seeing the simulation conform to those rules, that gives one a sense of power and achievement. Game programming falls on the rebellious side of the dichotomy of computing; resources are used for whimsy and fun, as opposed to Serious Business and Making Money (although sometimes these ideas intersect).
 

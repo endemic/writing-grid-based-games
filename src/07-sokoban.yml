@@ -1,6 +1,7 @@
-title: Game  &#35;7&#58; Sokoban
+title: Sokoban
 author: Nathan Demick
-description: Make a "Sokoban" game with Waffle
+description: Learn how to write a web-based ‟Sokoban” game using Waffle, a free JavaScript game library.
+og_image: /writing-grid-based-games/assets/sokoban/og_image.gif
 content: |
   [Sokoban](https://en.wikipedia.org/wiki/Sokoban) is yet another classic casual game genre. You control a warehouse worker who must organize boxes by pushing them to certain locations. The difficulty is to not get a box stuck by pushing it against the wall or into a corner. As a kid, I played games with similar mechanics, such as [Rodent's Revenge](https://en.wikipedia.org/wiki/Rodent's_Revenge). These sorts of games are easily made with Waffle, as they limit movement to within a grid. Let's go ahead and figure out how to make a basic sokoban game.
 
