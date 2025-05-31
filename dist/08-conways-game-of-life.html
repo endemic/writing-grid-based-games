@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Conway's Game of Life | Ganbaru Games</title>
+
+    <meta name="description" content="Learn how to write a web-based ‟Game of Life” game using Waffle, a free JavaScript game library.">
+    <meta name="author" content="Nathan Demick">
+
+    <meta property="og:title" content="Conway's Game of Life" />
+    <meta property="og:description" content="Learn how to write a web-based ‟Game of Life” game using Waffle, a free JavaScript game library." />
+    <meta property="og:image" content="/writing-grid-based-games/assets/game-of-life/og_image.gif" />
+
+    <link rel="stylesheet" href="https://ganbaru.games/assets/stylesheets/main.css">
+    <link rel="shortcut icon" href="https://ganbaru.games/assets/images/henohenomoheji.png" type="image/png">
+
+    <link rel="stylesheet" href="stylesheets/prism.css">
+    <link rel="stylesheet" href="stylesheets/extra.css">
+  </head>
+  <body>
+    <h1><span class="henohenomoheji"></span>Ganbaru Games</h1>
+
+    <div class="container">
+      <h2>Conway's Game of Life</h2>
+
+      <section class="text">
+        <p><a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway’s Game of Life</a> is a “cellular automaton” — basically a grid of cells that can have two states, <em>on</em> and <em>off</em> (or <em>live</em> and <em>dead</em>, if we continue the “cell” metaphor). The simulation is constrained by a simple ruleset, and each iteration of the rules produces a new state. This results in some interesting patterns, as well as the capability to create self-sustaining structures (such as “<a href="https://en.wikipedia.org/wiki/Gun_(cellular_automaton)">guns</a>”).</p>
+
+<p>The rules of Conway’s Game of Life are so simple, that ususally the hard part of any implementation is actually displaying the game state. But fortunately, we have access to <a href="https://github.com/endemic/waffle/releases/latest">Waffle</a>, which easily lets us display/update a grid on a webpage. Download the Waffle distribution, which has a <code>game.js</code> example template file. You can then open the <code>index.html</code> file (<strong>File → Open File → index.html</strong>) in a browser and immediately run your code.</p>
+
+<p>The template defaults to a 10x10 grid, but we’ll make it slightly larger, in order to create some interesting patterns. Make the following change in <code>game.js</code>:</p>
+
+<pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
+- const columns = 10;
++ const rows = 50;
++ const columns = 50;</code></pre>
+
+<p>The <code>game.js</code> file already has a <code>Waffle.onPointDown</code> handler pre-programmed, which toggles a <code>highlight</code> class on a clicked or tapped cell. We can re-use this in order to set the initial state of simulation; consider a highlighted cell “alive” and an empty cell “dead.” So really all that needs to be done is figure out a way to run the Game of Life rules every second or so. In browser-based JavaScript, we can use the global <code>setInterval</code> function to run some code at specified intervals.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }, { primary, secondary }) =&gt; {
+  console.log(`${secondary ? 'right' : 'left'}-clicked cell (${x}, ${y})`);
+
+  /* replace this with your own code! */
+  const state = Waffle.state;
+
+  if (Waffle.isEmpty(state[x][y])) {
+    state[x][y] = 'highlight';
+  } else {
+    state[x][y] = '';
+  }
+
+  Waffle.state = state;
+});
+
++ const updateTimeInMilliseconds = 500;
++ 
++ setInterval(() =&gt; {
++   // updating the game state will happen here, every half second
++ }, updateTimeInMilliseconds);
+</code></pre>
+
+<p>OK, so what are the rules of Game of Life?</p>
+
+<ol>
+  <li>Any live cell with fewer than two live neighbors dies</li>
+  <li>Any live cell with two or three live neighbors continues to live</li>
+  <li>Any live cell with more than three live neighbors dies</li>
+  <li>Any dead cell with three live neighbors becomes alive again</li>
+</ol>
+
+<p>We can loop through each cell in the grid and pretty easily apply these rules:</p>
+
+<pre><code class="language-diff-javascript diff-highlight">const updateTimeInMilliseconds = 500;
+
+setInterval(() =&gt; {
+-  // updating the game state will happen here, every half second
++ const currentState = Waffle.state;
++ const newState = Waffle.state.map(column =&gt; column.fill(''));  // create a blanked-out copy
++ 
++ for (let x = 0; x &lt; rows; x += 1) {
++   for (let y = 0; y &lt; columns; y += 1) {
++     const isAlive = currentState[x][y] === 'highlight';
++     const liveNeighbors = Waffle.getNeighbors({x, y}, true)
++                                 .filter(({x, y}) =&gt; currentState[x][y] === 'highlight')
++                                 .length;
++
++     // 1. Any live cell with fewer than two live neighbors dies
++     if (isAlive &amp;&amp; liveNeighbors &lt; 2) {
++       newState[x][y] = '';
++     }
++
++     // 2. Any live cell with two or three live neighbors continues to live
++     if (isAlive &amp;&amp; (liveNeighbors === 2 || liveNeighbors === 3)) {
++       newState[x][y] = 'highlight';
++     }
++
++     // 3. Any live cell with more than three live neighbors dies
++     if (isAlive &amp;&amp; liveNeighbors &gt; 3) {
++       newState[x][y] = '';
++     }
++
++     // 4. Any dead cell with three live neighbors becomes alive again
++     if (!isAlive &amp;&amp; liveNeighbors == 3) {
++       newState[x][y] = 'highlight';
++     }
++   }
++ }
++
++ Waffle.state = newState;
+}, updateTimeInMilliseconds);
+</code></pre>
+
+<p>The problem with the above code is that the simulation updates too quickly for you to really set up any interesting structures. If you click quickly you might be able to highlight a few cells before the next half-second update runs, but it’s not very fun or interesting. To solve this problem let’s make a button that toggles the simulation on or off. In the <code>index.html</code> file, under the “grid” <code>&lt;div&gt;</code>, add a button:</p>
+
+<pre><code class="language-diff-html diff-highlight"><!-- empty container for the grid -->
+&#x3C;div id=&#x22;grid&#x22;&#x3E;&#x3C;/div&#x3E;
++ &#x3C;button type=&#x22;button&#x22; id=&#x22;toggle&#x22;&#x3E;START&#x3C;/button&#x3E;</code></pre>
+
+<p>Update the <code>main.css</code> stylesheet to have the button appear below the grid:</p>
+
+<pre><code class="language-diff-css diff-highlight">body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
++ flex-direction: column;
++ gap: 1rem;
+}</code></pre>
+
+<p>Now, back in the <code>game.js</code> source file, we can attach some functionality to the button. Instead of having the button enable/disable the entire update loop, we can have it toggle a boolean variable that will just skip the update logic.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">+ let active = false;
+
+window.setInterval(() =&gt; {
++ if (!active) {
++   return;
++ }
+  
+  const currentState = Waffle.state;</code></pre>
+
+<p>We can then attach an event listener to the button to toggle the <code>active</code> variable.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">
++ const toggleButton = document.querySelector('#toggle');
++ 
++ toggleButton.addEventListener('click', () =&gt; {
++   active = !active;
++   toggleButton.textContent = active ? 'STOP' : 'START';
++ });</code></pre>
+
+<p>This lets us spend as much time as we want setting up the simulation before letting it run.</p>
+
+<!-- figure example -->
+<figure>
+  <img src="assets/sokoban/example_1.png" alt="walls created" />
+  <figcaption>walls created</figcaption>
+</figure>
+
+      </section>
+
+    </div>  <!-- /.container -->
+
+    <!-- syntax highlighting -->
+    <script src="scripts/prism.js"></script>
+
+    <section id="about">
+      <p>
+        Ganbaru Games publishes games written by
+        <a href="https://nathandemick.com" title="Nathan Demick">Nathan Demick</a>.
+        Each game is playable mobile and desktop web browsers.
+        In fact, you can load a game, then "save to homescreen" on your
+        smartphone to have convenient access at any time!
+      </p>
+
+      <p>
+        <a style="float: right;" href="https://ko-fi.com/I2I7LV8YU" target="_blank">
+          <img height="36" style="border:0px;height:36px;" src="https://storage.ko-fi.com/cdn/kofi5.png?v=3" alt="Buy Me a Coffee at ko-fi.com">
+        </a>
+      </p>
+
+      <ul>
+        <li><a href="https://github.com/endemic/waffle">Game making resources</a></li>
+        <li><a href="mailto:support@ganbarugames.com">Contact</a></li>
+        <li><a href="/privacy.html" title="Privacy Policy">Privacy Policy</a></li>
+      </ul>
+    </section>
+
+    <footer>
+      &copy; 2025 Ganbaru Games, LLC.
+    </footer>
+  </body>
+</html>

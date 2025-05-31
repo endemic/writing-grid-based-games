@@ -30,9 +30,9 @@ content: |
 
     Waffle.state = state;
   });
-  
+
   + const updateTimeInMilliseconds = 500;
-  + 
+  +
   + setInterval(() => {
   +   // updating the game state will happen here, every half second
   + }, updateTimeInMilliseconds);
@@ -48,12 +48,12 @@ content: |
   We can loop through each cell in the grid and pretty easily apply these rules:
 
   <pre><code class="language-diff-javascript diff-highlight">const updateTimeInMilliseconds = 500;
-  
+
   setInterval(() => {
   -  // updating the game state will happen here, every half second
   + const currentState = Waffle.state;
   + const newState = Waffle.state.map(column => column.fill(''));  // create a blanked-out copy
-  + 
+  +
   + for (let x = 0; x < rows; x += 1) {
   +   for (let y = 0; y < columns; y += 1) {
   +     const isAlive = currentState[x][y] === 'highlight';
@@ -111,14 +111,14 @@ content: |
   + if (!active) {
   +   return;
   + }
-    
+
     const currentState = Waffle.state;</code></pre>
 
   We can then attach an event listener to the button to toggle the `active` variable.
 
   <pre><code class="language-diff-javascript diff-highlight">
   + const toggleButton = document.querySelector('#toggle');
-  + 
+  +
   + toggleButton.addEventListener('click', () => {
   +   active = !active;
   +   toggleButton.textContent = active ? 'STOP' : 'START';
@@ -126,7 +126,29 @@ content: |
 
   This lets us spend as much time as we want setting up the simulation before letting it run.
 
-  
+  There are a number of interesting self-sustaining cell configurations you can create; I'll list a few here, along with some code that you can paste into your browser console to easily re-create them without having to tediously count and click a bunch of cells.
+
+  # example of getting a list of points, and easily setting them
+  ```javascript
+  const points = [];
+  const state = Waffle.state;
+
+  for (let x = 0; x < Waffle.columns; x += 1) {
+      for (let y = 0; y < Waffle.rows; y += 1) {
+          if (state[x][y] === 'highlight') {
+              points.push({x, y});
+          }
+      }
+  }
+
+  JSON.stringify(points);
+
+  Waffle.fill(''); // erase the grid
+  const state = Waffle.state;
+  [{"x":1,"y":1},{"x":2,"y":1},{"x":3,"y":1},{"x":4,"y":4},{"x":5,"y":4},{"x":6,"y":4},{"x":7,"y":1},{"x":8,"y":1},{"x":9,"y":1}]
+  .forEach(({x, y}) => state[x][y] = 'highlight');
+  Waffle.state = state;
+  ```
 
 
   <!-- figure example -->
