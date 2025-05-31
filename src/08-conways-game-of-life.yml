@@ -1,0 +1,136 @@
+title: Conway's Game of Life
+author: Nathan Demick
+description: Learn how to write a web-based ‟Game of Life” game using Waffle, a free JavaScript game library.
+og_image: /writing-grid-based-games/assets/game-of-life/og_image.gif
+content: |
+  [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) is a "cellular automaton" &mdash; basically a grid of cells that can have two states, _on_ and _off_ (or _live_ and _dead_, if we continue the "cell" metaphor). The simulation is constrained by a simple ruleset, and each iteration of the rules produces a new state. This results in some interesting patterns, as well as the capability to create self-sustaining structures (such as "[guns](https://en.wikipedia.org/wiki/Gun_(cellular_automaton))").
+
+  The rules of Conway's Game of Life are so simple, that ususally the hard part of any implementation is actually displaying the game state. But fortunately, we have access to [Waffle](https://github.com/endemic/waffle/releases/latest), which easily lets us display/update a grid on a webpage. Download the Waffle distribution, which has a `game.js` example template file. You can then open the `index.html` file (**File &rarr; Open File &rarr; index.html**) in a browser and immediately run your code.
+
+  The template defaults to a 10x10 grid, but we'll make it slightly larger, in order to create some interesting patterns. Make the following change in `game.js`:
+
+  <pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
+  - const columns = 10;
+  + const rows = 50;
+  + const columns = 50;</code></pre>
+
+  The `game.js` file already has a `Waffle.onPointDown` handler pre-programmed, which toggles a `highlight` class on a clicked or tapped cell. We can re-use this in order to set the initial state of simulation; consider a highlighted cell "alive" and an empty cell "dead." So really all that needs to be done is figure out a way to run the Game of Life rules every second or so. In browser-based JavaScript, we can use the global `setInterval` function to run some code at specified intervals.
+
+  <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }, { primary, secondary }) => {
+    console.log(`${secondary ? 'right' : 'left'}-clicked cell (${x}, ${y})`);
+
+    /* replace this with your own code! */
+    const state = Waffle.state;
+
+    if (Waffle.isEmpty(state[x][y])) {
+      state[x][y] = 'highlight';
+    } else {
+      state[x][y] = '';
+    }
+
+    Waffle.state = state;
+  });
+  
+  + const updateTimeInMilliseconds = 500;
+  + 
+  + setInterval(() => {
+  +   // updating the game state will happen here, every half second
+  + }, updateTimeInMilliseconds);
+  </code></pre>
+
+  OK, so what are the rules of Game of Life?
+
+  1. Any live cell with fewer than two live neighbors dies
+  2. Any live cell with two or three live neighbors continues to live
+  3. Any live cell with more than three live neighbors dies
+  4. Any dead cell with three live neighbors becomes alive again
+
+  We can loop through each cell in the grid and pretty easily apply these rules:
+
+  <pre><code class="language-diff-javascript diff-highlight">const updateTimeInMilliseconds = 500;
+  
+  setInterval(() => {
+  -  // updating the game state will happen here, every half second
+  + const currentState = Waffle.state;
+  + const newState = Waffle.state.map(column => column.fill(''));  // create a blanked-out copy
+  + 
+  + for (let x = 0; x < rows; x += 1) {
+  +   for (let y = 0; y < columns; y += 1) {
+  +     const isAlive = currentState[x][y] === 'highlight';
+  +     const liveNeighbors = Waffle.getNeighbors({x, y}, true)
+  +                                 .filter(({x, y}) => currentState[x][y] === 'highlight')
+  +                                 .length;
+  +
+  +     // 1. Any live cell with fewer than two live neighbors dies
+  +     if (isAlive && liveNeighbors < 2) {
+  +       newState[x][y] = '';
+  +     }
+  +
+  +     // 2. Any live cell with two or three live neighbors continues to live
+  +     if (isAlive && (liveNeighbors === 2 || liveNeighbors === 3)) {
+  +       newState[x][y] = 'highlight';
+  +     }
+  +
+  +     // 3. Any live cell with more than three live neighbors dies
+  +     if (isAlive && liveNeighbors > 3) {
+  +       newState[x][y] = '';
+  +     }
+  +
+  +     // 4. Any dead cell with three live neighbors becomes alive again
+  +     if (!isAlive && liveNeighbors == 3) {
+  +       newState[x][y] = 'highlight';
+  +     }
+  +   }
+  + }
+  +
+  + Waffle.state = newState;
+  }, updateTimeInMilliseconds);
+  </code></pre>
+
+  The problem with the above code is that the simulation updates too quickly for you to really set up any interesting structures. If you click quickly you might be able to highlight a few cells before the next half-second update runs, but it's not very fun or interesting. To solve this problem let's make a button that toggles the simulation on or off. In the `index.html` file, under the "grid" `<div>`, add a button:
+
+  <pre><code class="language-diff-html diff-highlight"><!-- empty container for the grid -->
+  &#x3C;div id=&#x22;grid&#x22;&#x3E;&#x3C;/div&#x3E;
+  + &#x3C;button type=&#x22;button&#x22; id=&#x22;toggle&#x22;&#x3E;START&#x3C;/button&#x3E;</code></pre>
+
+  Update the `main.css` stylesheet to have the button appear below the grid:
+
+  <pre><code class="language-diff-css diff-highlight">body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  + flex-direction: column;
+  + gap: 1rem;
+  }</code></pre>
+
+  Now, back in the `game.js` source file, we can attach some functionality to the button. Instead of having the button enable/disable the entire update loop, we can have it toggle a boolean variable that will just skip the update logic.
+
+  <pre><code class="language-diff-javascript diff-highlight">+ let active = false;
+
+  window.setInterval(() => {
+  + if (!active) {
+  +   return;
+  + }
+    
+    const currentState = Waffle.state;</code></pre>
+
+  We can then attach an event listener to the button to toggle the `active` variable.
+
+  <pre><code class="language-diff-javascript diff-highlight">
+  + const toggleButton = document.querySelector('#toggle');
+  + 
+  + toggleButton.addEventListener('click', () => {
+  +   active = !active;
+  +   toggleButton.textContent = active ? 'STOP' : 'START';
+  + });</code></pre>
+
+  This lets us spend as much time as we want setting up the simulation before letting it run.
+
+  
+
+
+  <!-- figure example -->
+  <figure>
+    <img src="assets/sokoban/example_1.png" alt="walls created">
+    <figcaption>walls created</figcaption>
+  </figure>
