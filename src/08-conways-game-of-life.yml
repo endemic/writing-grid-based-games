@@ -131,7 +131,7 @@ content: |
   ### Gosper Glider Gun
 
   <figure>
-    <img src="assets/conways-game-of-life/gosper_glider_gun.png" alt="Gosper Glider Gun">
+    <img src="assets/conways-game-of-life/gosper_glider_gun.gif" alt="Gosper Glider Gun">
     <figcaption>Gosper Glider Gun</figcaption>
   </figure>
 
@@ -146,7 +146,7 @@ content: |
   ### Simkin Glider Gun
 
   <figure>
-    <img src="assets/conways-game-of-life/simkin_glider_gun.png" alt="Simkin Glider Gun">
+    <img src="assets/conways-game-of-life/simkin_glider_gun.gif" alt="Simkin Glider Gun">
     <figcaption>Simkin Glider Gun</figcaption>
   </figure>
 
@@ -161,7 +161,7 @@ content: |
   ### Various Oscillators
 
   <figure>
-    <img src="assets/conways-game-of-life/oscillators.png" alt="Oscillators">
+    <img src="assets/conways-game-of-life/oscillators.gif" alt="Oscillators">
     <figcaption>Oscillators</figcaption>
   </figure>
 

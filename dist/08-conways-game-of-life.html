@@ -11,7 +11,7 @@
 
     <meta property="og:title" content="Conway's Game of Life" />
     <meta property="og:description" content="Learn how to write a web-based ‟Game of Life” game using Waffle, a free JavaScript game library." />
-    <meta property="og:image" content="/writing-grid-based-games/assets/game-of-life/og_image.gif" />
+    <meta property="og:image" content="/writing-grid-based-games/assets/conways-game-of-life/og_image.gif" />
 
     <link rel="stylesheet" href="https://ganbaru.games/assets/stylesheets/main.css">
     <link rel="shortcut icon" href="https://ganbaru.games/assets/images/henohenomoheji.png" type="image/png">
@@ -55,7 +55,7 @@
 });
 
 + const updateTimeInMilliseconds = 500;
-+ 
++
 + setInterval(() =&gt; {
 +   // updating the game state will happen here, every half second
 + }, updateTimeInMilliseconds);
@@ -78,7 +78,7 @@ setInterval(() =&gt; {
 -  // updating the game state will happen here, every half second
 + const currentState = Waffle.state;
 + const newState = Waffle.state.map(column =&gt; column.fill(''));  // create a blanked-out copy
-+ 
++
 + for (let x = 0; x &lt; rows; x += 1) {
 +   for (let y = 0; y &lt; columns; y += 1) {
 +     const isAlive = currentState[x][y] === 'highlight';
@@ -136,14 +136,14 @@ window.setInterval(() =&gt; {
 + if (!active) {
 +   return;
 + }
-  
+
   const currentState = Waffle.state;</code></pre>
 
 <p>We can then attach an event listener to the button to toggle the <code>active</code> variable.</p>
 
 <pre><code class="language-diff-javascript diff-highlight">
 + const toggleButton = document.querySelector('#toggle');
-+ 
++
 + toggleButton.addEventListener('click', () =&gt; {
 +   active = !active;
 +   toggleButton.textContent = active ? 'STOP' : 'START';
@@ -151,11 +151,52 @@ window.setInterval(() =&gt; {
 
 <p>This lets us spend as much time as we want setting up the simulation before letting it run.</p>
 
-<!-- figure example -->
+<p>There are a number of interesting self-sustaining cell configurations you can create; I’ll list a few here, along with some code that you can paste into your browser console to easily re-create them without having to tediously count and click a bunch of cells.</p>
+
+<h3 id="gosper-glider-gun">Gosper Glider Gun</h3>
+
 <figure>
-  <img src="assets/sokoban/example_1.png" alt="walls created" />
-  <figcaption>walls created</figcaption>
+  <img src="assets/conways-game-of-life/gosper_glider_gun.gif" alt="Gosper Glider Gun" />
+  <figcaption>Gosper Glider Gun</figcaption>
 </figure>
+
+<pre><code class="language-javascript">
+const points = '[{"x":1,"y":5},{"x":1,"y":6},{"x":2,"y":5},{"x":2,"y":6},{"x":11,"y":5},{"x":11,"y":6},{"x":11,"y":7},{"x":12,"y":4},{"x":12,"y":8},{"x":13,"y":3},{"x":13,"y":9},{"x":14,"y":3},{"x":14,"y":9},{"x":15,"y":6},{"x":16,"y":4},{"x":16,"y":8},{"x":17,"y":5},{"x":17,"y":6},{"x":17,"y":7},{"x":18,"y":6},{"x":21,"y":3},{"x":21,"y":4},{"x":21,"y":5},{"x":22,"y":3},{"x":22,"y":4},{"x":22,"y":5},{"x":23,"y":2},{"x":23,"y":6},{"x":25,"y":1},{"x":25,"y":2},{"x":25,"y":6},{"x":25,"y":7},{"x":35,"y":3},{"x":35,"y":4},{"x":36,"y":3},{"x":36,"y":4}]';
+const state = Waffle.state;
+
+JSON.parse(points).forEach(({x, y}) =&gt; state[x][y] = 'highlight');
+Waffle.state = state;
+</code></pre>
+
+<h3 id="simkin-glider-gun">Simkin Glider Gun</h3>
+
+<figure>
+  <img src="assets/conways-game-of-life/simkin_glider_gun.gif" alt="Simkin Glider Gun" />
+  <figcaption>Simkin Glider Gun</figcaption>
+</figure>
+
+<pre><code class="language-javascript">
+const points = '[{"x":6,"y":18},{"x":6,"y":19},{"x":7,"y":18},{"x":7,"y":19},{"x":10,"y":21},{"x":10,"y":22},{"x":11,"y":21},{"x":11,"y":22},{"x":13,"y":18},{"x":13,"y":19},{"x":14,"y":18},{"x":14,"y":19},{"x":26,"y":35},{"x":26,"y":36},{"x":27,"y":28},{"x":27,"y":29},{"x":27,"y":30},{"x":27,"y":35},{"x":27,"y":37},{"x":28,"y":27},{"x":28,"y":30},{"x":28,"y":37},{"x":29,"y":27},{"x":29,"y":30},{"x":29,"y":37},{"x":29,"y":38},{"x":31,"y":27},{"x":32,"y":27},{"x":32,"y":31},{"x":33,"y":28},{"x":33,"y":30},{"x":34,"y":29},{"x":37,"y":29},{"x":37,"y":30},{"x":38,"y":29},{"x":38,"y":30}]';
+const state = Waffle.state;
+
+JSON.parse(points).forEach(({x, y}) =&gt; state[x][y] = 'highlight');
+Waffle.state = state;
+</code></pre>
+
+<h3 id="various-oscillators">Various Oscillators</h3>
+
+<figure>
+  <img src="assets/conways-game-of-life/oscillators.gif" alt="Oscillators" />
+  <figcaption>Oscillators</figcaption>
+</figure>
+
+<pre><code class="language-javascript">
+const points = '[{"x":4,"y":7},{"x":4,"y":8},{"x":4,"y":9},{"x":4,"y":13},{"x":4,"y":14},{"x":4,"y":15},{"x":6,"y":5},{"x":6,"y":10},{"x":6,"y":12},{"x":6,"y":17},{"x":7,"y":5},{"x":7,"y":10},{"x":7,"y":12},{"x":7,"y":17},{"x":8,"y":5},{"x":8,"y":10},{"x":8,"y":12},{"x":8,"y":17},{"x":9,"y":7},{"x":9,"y":8},{"x":9,"y":9},{"x":9,"y":13},{"x":9,"y":14},{"x":9,"y":15},{"x":11,"y":7},{"x":11,"y":8},{"x":11,"y":9},{"x":11,"y":13},{"x":11,"y":14},{"x":11,"y":15},{"x":12,"y":5},{"x":12,"y":10},{"x":12,"y":12},{"x":12,"y":17},{"x":13,"y":5},{"x":13,"y":10},{"x":13,"y":12},{"x":13,"y":17},{"x":14,"y":5},{"x":14,"y":10},{"x":14,"y":12},{"x":14,"y":17},{"x":16,"y":7},{"x":16,"y":8},{"x":16,"y":9},{"x":16,"y":13},{"x":16,"y":14},{"x":16,"y":15},{"x":17,"y":27},{"x":17,"y":28},{"x":17,"y":29},{"x":17,"y":30},{"x":17,"y":31},{"x":17,"y":32},{"x":17,"y":33},{"x":17,"y":34},{"x":18,"y":27},{"x":18,"y":29},{"x":18,"y":30},{"x":18,"y":31},{"x":18,"y":32},{"x":18,"y":34},{"x":19,"y":27},{"x":19,"y":28},{"x":19,"y":29},{"x":19,"y":30},{"x":19,"y":31},{"x":19,"y":32},{"x":19,"y":33},{"x":19,"y":34},{"x":28,"y":3},{"x":28,"y":8},{"x":28,"y":14},{"x":28,"y":15},{"x":29,"y":3},{"x":29,"y":8},{"x":29,"y":9},{"x":29,"y":14},{"x":30,"y":3},{"x":30,"y":8},{"x":30,"y":9},{"x":30,"y":17},{"x":31,"y":9},{"x":31,"y":16},{"x":31,"y":17}]';
+const state = Waffle.state;
+
+JSON.parse(points).forEach(({x, y}) =&gt; state[x][y] = 'highlight');
+Waffle.state = state;
+</code></pre>
 
       </section>
 
