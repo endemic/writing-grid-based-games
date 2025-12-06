@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Peg Solitaire | Ganbaru Games</title>
+
+    <meta name="description" content="Learn how to write a web-based ‟Peg Solitaire” game using Waffle, a free JavaScript game library.">
+    <meta name="author" content="Nathan Demick">
+
+    <meta property="og:title" content="Peg Solitaire" />
+    <meta property="og:description" content="Learn how to write a web-based ‟Peg Solitaire” game using Waffle, a free JavaScript game library." />
+    <meta property="og:image" content="/writing-grid-based-games/assets/peg-solitaire/og_image.gif" />
+
+    <link rel="stylesheet" href="https://ganbaru.games/assets/stylesheets/main.css">
+    <link rel="shortcut icon" href="https://ganbaru.games/assets/images/henohenomoheji.png" type="image/png">
+
+    <link rel="stylesheet" href="stylesheets/prism.css">
+    <link rel="stylesheet" href="stylesheets/extra.css">
+  </head>
+  <body>
+    <h1><span class="henohenomoheji"></span>Ganbaru Games</h1>
+
+    <div class="container">
+      <h2>Peg Solitaire</h2>
+
+      <section class="text">
+        <p><a href="https://en.wikipedia.org/wiki/Peg_solitaire">Peg solitaire</a> is that annoying game you might play at your grandma’s house when there’s nothing else better to do. It’s a single player board game — the general concept is that the game board is filled with tokens, and a single open space. The goal is to “jump” pieces (thereby removing them) until only a single token remains (the most common physical versions I’ve played used golf tees).</p>
+
+<p>I recently saw someone make an open source version of this game for smartphones, but it required prospective players to download the game from an app store. Bogus! We can make the game easily enough for the web using <a href="https://github.com/endemic/waffle/releases/latest">Waffle</a>, which means you can play it instantly in a browser. Start off by downloading the Waffle .zip file, then extract its contents to a local directory. The files include an HTML file that loads/displays the game template (defined in <code>game.js</code>). You can open the <code>index.html</code> file (<strong>File → Open File → index.html</strong>) in a browser and immediately run your code.</p>
+
+<p>As per the Wikipedia entry, we’ll create the “English” style board, that kinda looks like a cross. It’s contained within a 7x7 grid, and the 2x2 areas in the all the corners are considered “dead zones” — you can’t move pieces there. Let’s start off by updating <code>game.js</code> so that Waffle creates a 7x7 grid. We can also set up the game pieces in a cross shape by looping over the board and placing a piece (or non-movable space) in the correct place.</p>
+
+<!-- image of board here -->
+
+<p>The algorithm we’ll use to create the board isn’t super brilliant — we’ll start by putting a “peg” in each square, then overwrite a peg with an immovable space or empty space, based on what row/column enumerating over. If we’re in rows 0 or 1 (our lists in Waffle start at 0, rather than 1), then we place non-movable spaces in columns 0, 1, 5, and 6. The center space (3, 3) is empty. Rows 5 and 6 follow the same rules as rows 0 and 1.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
+- const columns = 10;
++ const rows = 7;
++ const columns = 7;
+
+Waffle.init(rows, columns);
+
+- Waffle.onKeyDown(({ key }) =&gt; {
+-   console.log(`pressed ${key}`);
+- });
+
++ // initialize the board here
++ const state = Waffle.state;
++
++ for (let x = 0; x &lt; columns; x += 1) {
++   for (let y = 0; y &lt; rows; y += 1) {
++     // by default, assume the board contains a peg
++     state[x][y] = 'peg';
++
++     // handle the center (have to start w/ an empty space)
++     if (x === 3 &amp;&amp; y === 3) {
++       state[x][y] = 'empty';
++     }
++
++     // handle the spaces you can't move pegs to
++     if ([0, 1, 5, 6].includes(y) &amp;&amp; [0, 1, 5, 6].includes(x)) {
++       state[x][y] = 'immovable';
++     }
++   }
++ }
++
++ // update Waffle with the data we just created
++ Waffle.state = state;
+</code></pre>
+
+<p>Now update the included stylesheet with classes named the same as the state values we just used. The images defined here will be used to display the game objects.</p>
+
+<pre><code class="language-diff-css diff-highlight">#grid {
+  /* ... */
+
+-  .highlight {
+-    background-color: blueviolet;
+-  }
+
++  .peg { background: url('peg.png') center/100%; }
++  .empty { background: url('empty.png') center/100%; }
++  .immovable { background: url('immovable.png') center/100%; }
+}</code></pre>
+
+<!-- screenshot here -->
+
+<p>Awesome! Now we’ll start adding some interactivity. Probably the best way to do this with Waffle is to use a point ‘n click control scheme: click (or tap) once to select a peg, then click again to move to the desired position. If the move is valid, then the display state gets updated. The <code>game.js</code> template has a basic mouse/touch event handler set up; all we need to do is write our logic there. To start, we’ll add a variable to hold a reference to a “selected” peg. Then in the event handler function, we can save that peg whenever the player clicks.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">+ let selected = null;
++
+Waffle.onPointDown(({ x, y }, { primary, secondary }) =&gt; {
+- console.log(`${secondary ? 'right' : 'left'}-clicked cell (${x}, ${y})`);
+
+- /* replace this with your own code! */
+  const state = Waffle.state;
+
++ if (state[x][y] === 'peg') {
++   selected = {x, y};
++   state[x][y] = 'selected';
++ }
+
+-   if (Waffle.isEmpty(state[x][y])) {
+-     state[x][y] = 'highlight';
+-   } else {
+-     state[x][y] = '';
+-   }
+
+  Waffle.state = state;
+});
+</code></pre>
+
+<p>Save and reload the page. Now, when you click around, you can see the graphic for each peg change. Remember, the goal here is to be able to click a peg, then click an open space, to have the peg jump and remove another peg. So in the event handler, we can insert a check to see if the clicked space is “open” or not. If it is, we can add some logic to see if a jump was made.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }, { primary, secondary }) =&gt; {
+
+  const state = Waffle.state;
+
+  if (state[x][y] === 'peg') {
+    selected = {x, y};
+    state[x][y] = 'selected';
+  }
+
++ if (state[x][y] === 'empty' &amp;&amp; selected !== null) {
++   // ensure the selected peg would move exactly 2 spaces horizontally or vertically
++   const jump = (Math.abs(x - selected.x) === 2 &amp;&amp; y === selected.y) ||
++     (Math.abs(y - selected.y) === 2 &amp;&amp; x === selected.y);
++
++   // if not a jump over a single peg, do nothing
++   if (!jump) {
++     return;
++   }
++
++   // this is the piece that would be removed
++   const removed = {
++     x: (selected.x + x) / 2,
++     y: (selected.y + y) / 2
++   };
++
++   // if the jumped space is not actually a peg (e.g. empty), do nothing
++   if (state[removed.x][removed.y] !== 'peg') {
++     return;
++   }
++
++   // player made a valid jump over a peg; remove it!
++   state[removed.x][removed.y] = 'empty';
++   // move selected peg to new place
++   state[x][y] = 'peg';
++   // unset the `selected` variable
++   selected = null;
++ }
+
+  Waffle.state = state;
+});
+</code></pre>
+
+<p>This is basically the complete logic of the game! All that’s left is to check for the win condition, which is that only a single “peg” is left. Easy enough to do this: enumerate over all the spaces on the game board, and if there is a single peg, that means you’ve won.</p>
+
+<pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }, { primary, secondary }) =&gt; {
+
+  /* snip */
++   let found = 0;
++   for (let i = 0; i &lt; columns; i += 1) {
++     for (let j = 0; j &lt; rows; j += 1) {
++       if (state[i][j] === 'peg') {
++         found += 1;
++       }
++     }
++   }
+
++ if (found === 1) {
++   Waffle.alert("Congratulations, you win!");
++ }
+
+  Waffle.state = state;
+});
+</code></pre>
+
+      </section>
+
+    </div>  <!-- /.container -->
+
+    <!-- syntax highlighting -->
+    <script src="scripts/prism.js"></script>
+
+    <section id="about">
+      <p>
+        Ganbaru Games publishes games written by
+        <a href="https://nathandemick.com" title="Nathan Demick">Nathan Demick</a>.
+        Each game is playable mobile and desktop web browsers.
+        In fact, you can load a game, then "save to homescreen" on your
+        smartphone to have convenient access at any time!
+      </p>
+
+      <p>
+        <a style="float: right;" href="https://ko-fi.com/I2I7LV8YU" target="_blank">
+          <img height="36" style="border:0px;height:36px;" src="https://storage.ko-fi.com/cdn/kofi5.png?v=3" alt="Buy Me a Coffee at ko-fi.com">
+        </a>
+      </p>
+
+      <ul>
+        <li><a href="https://github.com/endemic/waffle">Game making resources</a></li>
+        <li><a href="mailto:support@ganbarugames.com">Contact</a></li>
+        <li><a href="/privacy.html" title="Privacy Policy">Privacy Policy</a></li>
+      </ul>
+    </section>
+
+    <footer>
+      &copy; 2025 Ganbaru Games, LLC.
+    </footer>
+  </body>
+</html>
