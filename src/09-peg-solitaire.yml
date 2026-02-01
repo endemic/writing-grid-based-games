@@ -7,11 +7,19 @@ content: |
 
   I recently saw someone make an open source version of this game for smartphones, but it required prospective players to download the game from an app store. Bogus! We can make the game easily enough for the web using [Waffle](https://github.com/endemic/waffle/releases/latest), which means you can play it instantly in a browser. Start off by downloading the Waffle .zip file, then extract its contents to a local directory. The files include an HTML file that loads/displays the game template (defined in `game.js`). You can open the `index.html` file (**File &rarr; Open File &rarr; index.html**) in a browser and immediately run your code.
 
-  As per the Wikipedia entry, we'll create the "English" style board, that kinda looks like a cross. It's contained within a 7x7 grid, and the 2x2 areas in the all the corners are considered "dead zones" &mdash; you can't move pieces there. Let's start off by updating `game.js` so that Waffle creates a 7x7 grid. We can also set up the game pieces in a cross shape by looping over the board and placing a piece (or non-movable space) in the correct place.
+  As per the Wikipedia entry, we'll create the "English" style board, that kinda looks like a cross. It's contained within a 7x7 grid, and the 2x2 areas in the all the corners are considered "dead zones" &mdash; you can't move pieces there. Let's start off by updating `game.js` so that Waffle creates a 7x7 grid. We can also set up the game pieces in a cross shape by looping over the board and placing a piece (or non-movable space) in the correct place. The board will end up looking something like this terrible ASCII diagram.
 
-  <!-- image of board here -->
+  <pre>
+  [x][x][·][·][·][x][x]
+  [x][x][·][·][·][x][x]
+  [·][·][·][·][·][·][·]
+  [·][·][·][o][·][·][·]
+  [·][·][·][·][·][·][·]
+  [x][x][·][·][·][x][x]
+  [x][x][·][·][·][x][x]
+  </pre>
 
-  The algorithm we'll use to create the board isn't super brilliant &mdash; we'll start by putting a "peg" in each square, then overwrite a peg with an immovable space or empty space, based on what row/column enumerating over. If we're in rows 0 or 1 (our lists in Waffle start at 0, rather than 1), then we place non-movable spaces in columns 0, 1, 5, and 6. The center space (3, 3) is empty. Rows 5 and 6 follow the same rules as rows 0 and 1.
+  The algorithm we'll use to create the board isn't super brilliant &mdash; we'll start by putting a "peg" in each square, then overwrite a peg with an blocked space or empty space, based on what row/column we're looping over. If we're in rows 0 or 1 (our lists in Waffle start at 0, rather than 1), then we place blocks in the first two and last two spaces (columns 0/1 and 5/6). The center space (3, 3) is empty. Rows 5 and 6 follow the same rules as rows 0 and 1.
 
   <pre><code class="language-diff-javascript diff-highlight">- const rows = 10;
   - const columns = 10;
@@ -39,7 +47,7 @@ content: |
   +
   +     // handle the spaces you can't move pegs to
   +     if ([0, 1, 5, 6].includes(y) && [0, 1, 5, 6].includes(x)) {
-  +       state[x][y] = 'immovable';
+  +       state[x][y] = 'block';
   +     }
   +   }
   + }
@@ -48,7 +56,7 @@ content: |
   + Waffle.state = state;
   </code></pre>
 
-  Now update the included stylesheet with classes named the same as the state values we just used. The images defined here will be used to display the game objects.
+  Now update the included `main.css` stylesheet with classes named the same as the state values we just used. The images defined here will be used to display the game objects. You can [download some example images](assets/peg-solitaire/images.zip), or make your own!
 
   <pre><code class="language-diff-css diff-highlight">#grid {
     /* ... */
@@ -56,13 +64,19 @@ content: |
   -  .highlight {
   -    background-color: blueviolet;
   -  }
-
-  +  .peg { background: url('peg.png') center/100%; }
-  +  .empty { background: url('empty.png') center/100%; }
-  +  .immovable { background: url('immovable.png') center/100%; }
+  +  body { background-color: black; }
+  +
+  +  .peg { background: url('peg.jpg') center/100%; }
+  +  .empty { background: url('empty.jpg') center/100%; }
+  +  .block { background: url('block.jpg') center/100%; }
   }</code></pre>
 
-  <!-- screenshot here -->
+  Save the stylesheet, then reload the HTML file in your browser. You should see something like this:
+
+  <figure>
+    <img src="assets/peg-solitaire/example_1.jpg" alt="image of peg board grid">
+    <figcaption>the peg solitaire board setup</figcaption>
+  </figure>
 
   Awesome! Now we'll start adding some interactivity. Probably the best way to do this with Waffle is to use a point 'n click control scheme: click (or tap) once to select a peg, then click again to move to the desired position. If the move is valid, then the display state gets updated. The `game.js` template has a basic mouse/touch event handler set up; all we need to do is write our logic there. To start, we'll add a variable to hold a reference to a "selected" peg. Then in the event handler function, we can save that peg whenever the player clicks.
 
@@ -89,6 +103,13 @@ content: |
   });
   </code></pre>
 
+  Make sure to update the CSS file to reference the image for the "selected" peg.
+
+  <pre><code class="language-diff-css diff-highlight">#grid {
+    /* ... */
+    +  .selected { background: url('selected.jpg') center/100%; }
+  }</code></pre>
+
   Save and reload the page. Now, when you click around, you can see the graphic for each peg change. Remember, the goal here is to be able to click a peg, then click an open space, to have the peg jump and remove another peg. So in the event handler, we can insert a check to see if the clicked space is "open" or not. If it is, we can add some logic to see if a jump was made.
 
   <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }, { primary, secondary }) => {
@@ -100,17 +121,18 @@ content: |
       state[x][y] = 'selected';
     }
 
-  + if (state[x][y] === 'empty' && selected !== null) {
-  +   // ensure the selected peg would move exactly 2 spaces horizontally or vertically
-  +   const jump = (Math.abs(x - selected.x) === 2 && y === selected.y) ||
-  +     (Math.abs(y - selected.y) === 2 && x === selected.y);
+  + if (state[x][y] === 'empty' && selected) {
+  +   // ensure the selected peg would move exactly 2 spaces
+  +   const jump = (Math.abs(x - selected.x) === 2 && y === selected.y) || // this is a horizontal jump
+  +     (Math.abs(y - selected.y) === 2 && x === selected.y);  // this is a vertical jump
   +
-  +   // if not a jump over a single peg, do nothing
+  +   // if not a jump, do nothing
   +   if (!jump) {
   +     return;
   +   }
   +
-  +   // this is the piece that would be removed
+  +   // this is the piece in between the selected peg
+  +   // and the clicked peg
   +   const removed = {
   +     x: (selected.x + x) / 2,
   +     y: (selected.y + y) / 2
@@ -123,9 +145,11 @@ content: |
   +
   +   // player made a valid jump over a peg; remove it!
   +   state[removed.x][removed.y] = 'empty';
+  +
   +   // move selected peg to new place
   +   state[x][y] = 'peg';
-  +   // unset the `selected` variable
+  +
+  +   // null out the `selected` variable
   +   selected = null;
   + }
 
@@ -133,7 +157,7 @@ content: |
   });
   </code></pre>
 
-  This is basically the complete logic of the game! All that's left is to check for the win condition, which is that only a single "peg" is left. Easy enough to do this: enumerate over all the spaces on the game board, and if there is a single peg, that means you've won.
+  This is basically the complete logic of the game! All that's left is to check for the win condition, which is that only a single "peg" is left. Easy enough to do this: loop over all the spaces on the game board, and if there is only one peg left, that means you've won.
 
   <pre><code class="language-diff-javascript diff-highlight">Waffle.onPointDown(({ x, y }, { primary, secondary }) => {
 
@@ -154,3 +178,5 @@ content: |
     Waffle.state = state;
   });
   </code></pre>
+
+  Since I'm too lazy to play enough of this game to develop my own solving algorithm, I cheated and followed [these instructions](https://www.chessandpoker.com/peg-solitaire-solution.html) to complete the game. Maybe you can memorize those steps and impress your grandma next time you visit.
